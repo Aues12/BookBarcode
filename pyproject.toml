@@ -1,0 +1,7 @@
+[project]
+name = "bookbarcode"
+version = "0.1.0"
+description = "EAN/13 compatible book barcode generator"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
