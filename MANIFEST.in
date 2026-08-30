@@ -1,0 +1,7 @@
+include README.md
+include pyproject.toml
+recursive-include bookbarcode *.py py.typed
+recursive-include docs *.md
+include tests/test_library.py
+include tests/test_cli.py
+exclude tests/test_tool.py

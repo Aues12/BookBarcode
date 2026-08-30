@@ -1,13 +1,19 @@
 # Python-generated files
 __pycache__/
-*.py[oc]
+*.py[cod]
+.pytest_cache/
+.pycache/
+
+# Build and packaging outputs
 build/
 dist/
 wheels/
-*.egg-info
+*.egg-info/
 
-# Virtual environments
-.venv
+# Virtual environments and local version selectors
+.venv/
+venv/
+.python-version
 
-# macOS metadata
+# macOS filesystem metadata
 .DS_Store

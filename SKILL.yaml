@@ -1,0 +1,104 @@
+name: isbn_barcode
+type: tool
+capability: barcode_generation
+purpose: Generate and verify print-ready ISBN-13/EAN-13 SVG and process-black CMYK PDF barcodes.
+status: experimental
+deterministic: true
+interfaces:
+  - name: stdin_json
+    entrypoint: isbn_barcode.py
+    transport: stdin_json
+  - name: python_api
+    entrypoint: tool.py
+    callables:
+      - build_layout
+      - generate_svg
+      - write_svg
+      - write_pdf
+      - write_barcode
+      - verify_svg
+      - verify_pdf
+      - run
+  - name: python_package
+    entrypoint: bookbarcode/__init__.py
+    callables:
+      - Barcode
+      - BarcodeLayout
+      - encode_ean13
+      - render_svg
+      - render_pdf
+      - verify_svg
+      - verify_pdf
+operations:
+  - name: generate_svg
+    available_via: [stdin_json, python_api]
+    params:
+      isbn: {type: string, required: true}
+      display_text: {type: string, required: false}
+      layout: {type: object, required: false}
+    returns:
+      type: object
+      description: SVG text, normalized ISBN, layout, and color metadata.
+  - name: write_svg
+    available_via: [stdin_json, python_api]
+    params:
+      isbn: {type: string, required: true}
+      output_path: {type: string, required: true}
+      display_text: {type: string, required: false}
+      layout: {type: object, required: false}
+      overwrite: {type: boolean, required: false, default: false}
+    returns:
+      type: object
+      description: Written SVG path, layout metadata, and verification report.
+  - name: write_pdf
+    available_via: [stdin_json, python_api]
+    params:
+      isbn: {type: string, required: true}
+      output_path: {type: string, required: true}
+      display_text: {type: string, required: false}
+      layout: {type: object, required: false}
+      overwrite: {type: boolean, required: false, default: false}
+    returns:
+      type: object
+      description: Written process-black PDF path, layout metadata, and verification report.
+  - name: write_barcode
+    available_via: [stdin_json, python_api]
+    params:
+      isbn: {type: string, required: true}
+      output_base: {type: string, required: true}
+      formats:
+        type: array
+        required: false
+        default: [svg, pdf]
+      display_text: {type: string, required: false}
+      layout: {type: object, required: false}
+      overwrite: {type: boolean, required: false, default: false}
+    returns:
+      type: object
+      description: Verified SVG/PDF artifact bundle.
+  - name: verify_svg
+    available_via: [stdin_json, python_api]
+    params:
+      path: {type: string, required: true}
+      isbn: {type: string, required: true}
+      layout: {type: object, required: false}
+    returns: {type: object, description: SVG verification report.}
+  - name: verify_pdf
+    available_via: [stdin_json, python_api]
+    params:
+      path: {type: string, required: true}
+      layout: {type: object, required: false}
+    returns: {type: object, description: PDF structure, page-size, and color verification report.}
+side_effects:
+  reads:
+    - verify_svg and verify_pdf read one caller-selected file.
+  writes:
+    - write_svg and write_pdf atomically write one caller-selected file.
+    - write_barcode atomically writes each selected artifact after preflight validation.
+failure_modes:
+  - Invalid ISBN values, layouts, formats, or request parameters return structured errors.
+  - Existing outputs are rejected unless overwrite is true.
+  - Missing output directories are rejected instead of being created implicitly.
+validation:
+  - python3 -m unittest discover -s file-tools/isbn_barcode/tests
+  - build wheel and source distribution from file-tools/isbn_barcode

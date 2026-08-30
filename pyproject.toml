@@ -1,7 +1,34 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "bookbarcode"
-version = "0.1.0"
-description = "EAN/13 compatible book barcode generator"
+dynamic = ["version"]
+description = "Deterministic, print-ready ISBN-13 barcode generation for SVG and CMYK PDF"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 dependencies = []
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Typing :: Typed",
+]
+
+[project.optional-dependencies]
+dev = ["build>=1.2", "twine>=5.0"]
+
+[project.scripts]
+bookbarcode = "bookbarcode.cli:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "bookbarcode.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["bookbarcode*"]
+
+[tool.setuptools.package-data]
+bookbarcode = ["py.typed"]
