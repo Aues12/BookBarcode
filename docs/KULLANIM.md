@@ -16,7 +16,8 @@ BookBarcode, geçerli bir ISBN-13 numarasından EAN-13 barkodu üretir. Aynı
   tercih edilmelidir.
 
 KDY ölçü ve renk özetinin dayanağı için
-[KDY referans notlarına](KDY-REFERANS-NOTLARI.md) bakın.
+[KDY referans notlarına](KDY-REFERANS-NOTLARI.md) bakın. İngilizce sürüm için
+[English user guide](USAGE.md) belgesine bakın.
 
 ## Gereksinimler
 
@@ -31,10 +32,10 @@ python3 --version
 
 ## Kurulum
 
-Agent-tools reposundan BookBarcode klasörüne geçin:
+BookBarcode repo köküne geçin:
 
 ```bash
-cd file-tools/isbn_barcode
+cd /path/to/BookBarcode
 ```
 
 Geliştirme kurulumu:
@@ -57,7 +58,7 @@ Kurulumdan sonra:
 bookbarcode --help
 ```
 
-Kurulum yapmadan, `file-tools/isbn_barcode` klasöründen de çalıştırılabilir:
+Kurulum yapmadan, BookBarcode repo kökünden de çalıştırılabilir:
 
 ```bash
 python3 -m bookbarcode.cli --help
@@ -253,7 +254,7 @@ barcode.write_pdf("book-barcode.pdf")
 
 ## Agent-tools JSON arayüzü
 
-Agent-tools repo kökünden SVG ve PDF üretmek için:
+BookBarcode repo kökünden SVG ve PDF üretmek için:
 
 ```bash
 printf '%s' '{
@@ -263,7 +264,7 @@ printf '%s' '{
     "output_base": "/tmp/book-barcode",
     "layout": {"preset": "normal"}
   }
-}' | python3 file-tools/isbn_barcode/isbn_barcode.py
+}' | python3 isbn_barcode.py
 ```
 
 Desteklenen operasyonlar:
@@ -275,8 +276,8 @@ Desteklenen operasyonlar:
 * `verify_svg`
 * `verify_pdf`
 
-İstek ve yanıt sözleşmesinin ayrıntıları için üst seviye `USE_TOOL.md` ve
-araç dizinindeki `SKILL.yaml` kullanılmalıdır.
+İstek ve yanıt sözleşmesinin ayrıntıları için üst seviye [SKILL.yaml](../SKILL.yaml)
+kullanılmalıdır.
 
 ## Uçtan uca örnekler
 
@@ -347,10 +348,10 @@ komutu tekrar çalıştırın.
 
 ## Testler
 
-Agent-tools repo kökünden:
+BookBarcode repo kökünden:
 
 ```bash
-python3 -m unittest discover -s file-tools/isbn_barcode/tests -v
+python3 -m unittest discover -s tests -v
 ```
 
 Testler ISBN/EAN vektörlerini, fiziksel layout'u, SVG/PDF render işlemlerini,

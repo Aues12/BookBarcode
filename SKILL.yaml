@@ -100,5 +100,5 @@ failure_modes:
   - Existing outputs are rejected unless overwrite is true.
   - Missing output directories are rejected instead of being created implicitly.
 validation:
-  - python3 -m unittest discover -s file-tools/isbn_barcode/tests
-  - build wheel and source distribution from file-tools/isbn_barcode
+  - python3 -m unittest discover -s tests
+  - python3 -m build

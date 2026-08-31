@@ -154,9 +154,9 @@ behavior, fix the package and let every surface consume it.
 Required local checks:
 
 ```bash
-python3 -m unittest discover -s file-tools/isbn_barcode/tests -v
+python3 -m unittest discover -s tests -v
 python3 test_all.py
-python3 -m py_compile file-tools/isbn_barcode/bookbarcode/*.py
+python3 -m py_compile bookbarcode/*.py
 git diff --check
 ```
 

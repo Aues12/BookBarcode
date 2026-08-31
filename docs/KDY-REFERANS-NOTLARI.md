@@ -6,7 +6,8 @@ notudur. PDF 1 Aralık 2020 tarihinde Adobe InDesign ile oluşturulmuş A4 bir
 belgedir.
 
 Bu not resmî KDY belgesinin yerine geçmez. Üretime girmeden önce güncel yayınevi
-şartlarını ve matbaa gereksinimlerini ayrıca doğrulayın.
+şartlarını ve matbaa gereksinimlerini ayrıca doğrulayın. İngilizce sürüm için
+[KDY Barcode Size and Colour Reference Notes](KDY-REFERENCE-NOTES.md) belgesine bakın.
 
 ## Minimum ölçü
 

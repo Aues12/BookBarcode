@@ -16,7 +16,9 @@ CLI, and agent-tools JSON adapter.
 
 Documentation:
 
+* [English user guide](docs/USAGE.md)
 * [Türkçe kullanım kılavuzu](docs/KULLANIM.md)
+* [KDY size and colour reference notes](docs/KDY-REFERENCE-NOTES.md)
 * [KDY ölçü ve renk referans notları](docs/KDY-REFERANS-NOTLARI.md)
 
 ## Python package
@@ -80,7 +82,7 @@ python3 -m bookbarcode.cli 9786253798338 --output /tmp/book-barcode
 
 ## Agent-tools JSON interface
 
-From the agent-tools repository root:
+From this repository root:
 
 ```bash
 printf '%s' '{
@@ -91,7 +93,7 @@ printf '%s' '{
     "output_base": "/tmp/book-barcode",
     "layout": {"preset": "normal"}
   }
-}' | python3 file-tools/isbn_barcode/isbn_barcode.py
+}' | python3 isbn_barcode.py
 ```
 
 Available operations are `generate_svg`, `write_svg`, `write_pdf`,
@@ -101,29 +103,29 @@ Available operations are `generate_svg`, `write_svg`, `write_pdf`,
 
 ```mermaid
 flowchart TD
-    input["ISBN ve layout girdisi"]
-    validate{"ISBN-13 ve ölçüler geçerli mi?"}
-    encode["95 modüllük EAN-13 desenini oluştur"]
-    geometry["Ortak çubuk ve metin geometrisini hesapla"]
-    format{"Çıktı biçimi"}
+    input["ISBN and layout input"]
+    validate{"Is the ISBN-13 and layout valid?"}
+    encode["Build the 95-module EAN-13 pattern"]
+    geometry["Calculate shared bar and text geometry"]
+    format{"Output format"}
     svg["SVG renderer"]
     pdf["Process-black CMYK PDF renderer"]
-    verify{"Serileştirilmiş çıktı doğrulandı mı?"}
-    write["Atomik olarak hedefe yaz"]
-    ready(["Doğrulanmış barkod"])
-    error(["Açıklayıcı hata"])
+    verify{"Does the serialized artifact verify?"}
+    write["Write atomically to the target"]
+    ready(["Verified barcode"])
+    error(["Actionable error"])
 
     input --> validate
-    validate -->|Evet| encode
-    validate -->|Hayır| error
+    validate -->|Yes| encode
+    validate -->|No| error
     encode --> geometry
     geometry --> format
     format -->|SVG| svg
     format -->|PDF| pdf
     svg --> verify
     pdf --> verify
-    verify -->|Evet| write
-    verify -->|Hayır| error
+    verify -->|Yes| write
+    verify -->|No| error
     write --> ready
 ```
 
@@ -159,6 +161,7 @@ python3 -m build
 python3 -m twine check dist/*
 ```
 
-The distribution version is read from `bookbarcode.__version__`. Before public
-release, confirm the package name, choose an explicit license, test the built
-wheel in a clean environment, and publish to TestPyPI first.
+The distribution version is read from `bookbarcode.__version__`. BookBarcode is
+released under the [MIT License](LICENSE). Before publishing, confirm
+package-name availability, test the built wheel in a clean environment, and
+publish to TestPyPI first.
