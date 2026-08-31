@@ -1,33 +1,94 @@
 # BookBarcode
 
-BookBarcode is a dependency-free Python package and agent-tools capability for
-deterministic ISBN-13/EAN-13 barcode generation.
+BookBarcode generates deterministic ISBN-13/EAN-13 barcodes for books.
+It creates editable SVG files and print-ready PDF files, and checks each
+artifact before writing it.
 
-It produces:
+- **PDF** is the recommended final format for printing. It uses true process
+  black: `C:0 M:0 Y:0 K:100`.
+- **SVG** is useful for vector editing and preview. It includes CMYK intent
+  metadata, although colour handling ultimately depends on the SVG application.
 
-* editable, millimetre-sized SVG with process-black CMYK intent metadata;
-* print-ready PDF using the real `0 0 0 1 k` CMYK operator;
-* structured verification reports for both artifact formats.
+The package has no runtime third-party dependencies and supports Python 3.9+.
 
-The default KDY layout is 35 x 19 mm. The `minimum` preset is 26 x 14 mm.
-Custom dimensions, bar height, and symmetric or independent side margins are
-supported. The same `bookbarcode` package powers the Python API, standalone
-CLI, and agent-tools JSON adapter.
+## Quick start
 
-Documentation:
-
-* [English user guide](docs/USAGE.md)
-* [Türkçe kullanım kılavuzu](docs/KULLANIM.md)
-* [KDY size and colour reference notes](docs/KDY-REFERENCE-NOTES.md)
-* [KDY ölçü ve renk referans notları](docs/KDY-REFERANS-NOTLARI.md)
-
-## Python package
-
-From this directory, install in editable mode during development:
+Install from the repository during development:
 
 ```bash
 python3 -m pip install -e .
 ```
+
+Generate both formats with a valid ISBN-13:
+
+```bash
+bookbarcode 9786253798338
+```
+
+This creates and verifies these files in the current directory:
+
+```text
+book-barcode.svg
+book-barcode.pdf
+```
+
+The command refuses to replace an existing file unless you add `--overwrite`.
+It writes a temporary sibling, verifies it, then atomically installs it at the
+target path.
+
+You can also run the command from this repository without installing it:
+
+```bash
+python3 -m bookbarcode.cli 9786253798338
+```
+
+## Common tasks
+
+Create a print-ready PDF at a chosen path:
+
+```bash
+bookbarcode 9786253798338 \
+  --format pdf \
+  --output output/book-barcode
+```
+
+Use the smallest bundled layout when space is constrained:
+
+```bash
+bookbarcode 9786253798338 \
+  --preset minimum \
+  --output output/small-book-barcode
+```
+
+Use assigned ISBN hyphenation in the visible heading:
+
+```bash
+bookbarcode 9786059681131 \
+  --display "ISBN 978-605-9681-13-1" \
+  --output output/book-barcode
+```
+
+Without `--display`, BookBarcode uses a readable `3-3-3-3-1` fallback. This is
+not an assertion about official ISBN registrant ranges; provide the assigned
+hyphenation when it matters.
+
+## Layout and output
+
+| Preset | Dimensions | Best for |
+|---|---:|---|
+| `normal` (default) | 35 × 19 mm | Typical book barcodes |
+| `minimum` | 26 × 14 mm | Space-constrained covers |
+
+By default, BookBarcode writes both SVG and PDF. Use `--format svg` or
+`--format pdf` to select one. `--output` sets the base path, so
+`--output output/barcode` produces `output/barcode.svg` and/or
+`output/barcode.pdf`; the directory must already exist.
+
+Custom total dimensions, data-bar height, and either shared or independent
+side margins are available. The detailed commands and the full option reference
+are in the [English user guide](docs/USAGE.md).
+
+## Python API
 
 Generate content without writing files:
 
@@ -59,109 +120,48 @@ barcode.write_svg("book-barcode.svg")
 barcode.write_pdf("book-barcode.pdf")
 ```
 
-Existing files are refused unless `overwrite=True` is explicit. Each write uses
-a temporary sibling, verifies it, and only then atomically replaces the target.
-The output directory must already exist.
-
-## Standalone CLI
-
-After installation:
-
-```bash
-bookbarcode 9786253798338 \
-  --display "ISBN 978-625-379-833-8" \
-  --output /tmp/book-barcode \
-  --format both
-```
-
-Without installation, run from this directory:
-
-```bash
-python3 -m bookbarcode.cli 9786253798338 --output /tmp/book-barcode
-```
-
 ## Agent-tools JSON interface
 
-From this repository root:
+Agent tools can use BookBarcode as a tool by sending a JSON request envelope to
+`isbn_barcode.py` over standard input. The adapter translates that request to
+the same package API used by Python and the CLI; it does not implement barcode
+rules independently.
 
 ```bash
 printf '%s' '{
   "operation": "write_barcode",
   "params": {
     "isbn": "9786253798338",
-    "display_text": "ISBN 978-625-379-833-8",
     "output_base": "/tmp/book-barcode",
     "layout": {"preset": "normal"}
   }
 }' | python3 isbn_barcode.py
 ```
 
-Available operations are `generate_svg`, `write_svg`, `write_pdf`,
-`write_barcode`, `verify_svg`, and `verify_pdf`.
+Supported operations are `generate_svg`, `write_svg`, `write_pdf`,
+`write_barcode`, `verify_svg`, and `verify_pdf`. See [SKILL.yaml](SKILL.yaml)
+for the machine-readable request and response contract.
 
-## Architecture
+## Documentation
 
-```mermaid
-flowchart TD
-    input["ISBN and layout input"]
-    validate{"Is the ISBN-13 and layout valid?"}
-    encode["Build the 95-module EAN-13 pattern"]
-    geometry["Calculate shared bar and text geometry"]
-    format{"Output format"}
-    svg["SVG renderer"]
-    pdf["Process-black CMYK PDF renderer"]
-    verify{"Does the serialized artifact verify?"}
-    write["Write atomically to the target"]
-    ready(["Verified barcode"])
-    error(["Actionable error"])
+- [English user guide](docs/USAGE.md) — installation, complete CLI reference,
+  custom layouts, printing guidance, common errors, and examples.
+- [Türkçe kullanım kılavuzu](docs/KULLANIM.md)
+- [KDY size and colour reference notes](docs/KDY-REFERENCE-NOTES.md)
+- [KDY ölçü ve renk referans notları](docs/KDY-REFERANS-NOTLARI.md)
 
-    input --> validate
-    validate -->|Yes| encode
-    validate -->|No| error
-    encode --> geometry
-    geometry --> format
-    format -->|SVG| svg
-    format -->|PDF| pdf
-    svg --> verify
-    pdf --> verify
-    verify -->|Yes| write
-    verify -->|No| error
-    write --> ready
-```
+## Quality and printing
 
-```text
-ISBN validation → EAN-13 modules → shared geometry
-                                      ├── SVG renderer
-                                      └── PDF renderer
+BookBarcode verifies the serialized SVG/PDF structure, dimensions, barcode
+modules, guard bars, readable digits, and colour intent where applicable.
+For production, keep quiet zones clear, do not scale the barcode
+non-proportionally or rasterize it, and scan a printed sample after printer
+preflight.
 
-serialized artifact → independent verifier → atomic writer
-```
-
-The package is the single source of truth. `tool.py` only translates JSON-like
-parameters and responses; it does not duplicate barcode algorithms.
-
-## ISBN display text
-
-When `display_text` is omitted, BookBarcode uses a readable 3-3-3-3-1 fallback.
-This does not infer official ISBN registrant ranges. Pass the assigned
-hyphenation explicitly when publication metadata requires exact grouping.
-
-## Verification scope
-
-SVG verification checks physical dimensions, EAN modules, guard bars, readable
-digits, and CMYK intent. PDF verification checks file framing, page dimensions,
-and process-black commands. A production print workflow should still perform
-scanner tests and printer preflight.
-
-## Development and packaging
+Run the test suite from the repository root:
 
 ```bash
 python3 -m unittest discover -s tests -v
-python3 -m build
-python3 -m twine check dist/*
 ```
 
-The distribution version is read from `bookbarcode.__version__`. BookBarcode is
-released under the [MIT License](LICENSE). Before publishing, confirm
-package-name availability, test the built wheel in a clean environment, and
-publish to TestPyPI first.
+BookBarcode is released under the [MIT License](LICENSE).
