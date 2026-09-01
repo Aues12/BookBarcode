@@ -1,9 +1,20 @@
 name: isbn_barcode
 type: tool
+contract_version: 1
+canonical_manifest: true
+procedure: USE_TOOL.md
 capability: barcode_generation
 purpose: Generate and verify print-ready ISBN-13/EAN-13 SVG and process-black CMYK PDF barcodes.
 status: experimental
 deterministic: true
+execution:
+  request: One UTF-8 JSON object with operation and params, read from stdin.
+  response: One JSON success/error envelope, written to stdout.
+  working_directory: Repository root is recommended; relative paths resolve from the invoking process working directory.
+  exit_codes:
+    0: Operation executed; verification callers must also inspect result.valid.
+    1: Parsed request failed validation or operation execution.
+    2: Stdin was empty or malformed JSON.
 interfaces:
   - name: stdin_json
     entrypoint: isbn_barcode.py
@@ -29,13 +40,40 @@ interfaces:
       - render_pdf
       - verify_svg
       - verify_pdf
+schemas:
+  layout:
+    type: object
+    additional_properties: false
+    properties:
+      preset: {type: string, required: false, default: normal, enum: [normal, minimum]}
+      width_mm: {type: number_or_null, required: false, unit: mm}
+      height_mm: {type: number_or_null, required: false, unit: mm}
+      bar_height_mm: {type: number_or_null, required: false, unit: mm}
+      side_margin_mm: {type: number_or_null, required: false, unit: mm}
+      left_margin_mm: {type: number_or_null, required: false, unit: mm}
+      right_margin_mm: {type: number_or_null, required: false, unit: mm}
+  formats:
+    type: array
+    items: {type: string, enum: [svg, pdf]}
+    min_items: 1
+    unique_items: true
+    default: [svg, pdf]
+  verification:
+    type: object
+    fields:
+      valid: {type: boolean}
+      errors: {type: array, items: {type: string}}
+response_semantics:
+  success: Reports whether the operation executed, not whether a verified artifact is valid.
+  artifact_validity: For verify_svg and verify_pdf, require result.valid to be true.
+  request_meta: Caller-provided top-level meta is not preserved or echoed.
 operations:
   - name: generate_svg
     available_via: [stdin_json, python_api]
     params:
       isbn: {type: string, required: true}
       display_text: {type: string, required: false}
-      layout: {type: object, required: false}
+      layout: {type: object, required: false, schema: layout}
     returns:
       type: object
       description: SVG text, normalized ISBN, layout, and color metadata.
@@ -45,7 +83,7 @@ operations:
       isbn: {type: string, required: true}
       output_path: {type: string, required: true}
       display_text: {type: string, required: false}
-      layout: {type: object, required: false}
+      layout: {type: object, required: false, schema: layout}
       overwrite: {type: boolean, required: false, default: false}
     returns:
       type: object
@@ -56,7 +94,7 @@ operations:
       isbn: {type: string, required: true}
       output_path: {type: string, required: true}
       display_text: {type: string, required: false}
-      layout: {type: object, required: false}
+      layout: {type: object, required: false, schema: layout}
       overwrite: {type: boolean, required: false, default: false}
     returns:
       type: object
@@ -70,8 +108,9 @@ operations:
         type: array
         required: false
         default: [svg, pdf]
+        schema: formats
       display_text: {type: string, required: false}
-      layout: {type: object, required: false}
+      layout: {type: object, required: false, schema: layout}
       overwrite: {type: boolean, required: false, default: false}
     returns:
       type: object
@@ -81,24 +120,26 @@ operations:
     params:
       path: {type: string, required: true}
       isbn: {type: string, required: true}
-      layout: {type: object, required: false}
+      layout: {type: object, required: false, schema: layout}
     returns: {type: object, description: SVG verification report.}
   - name: verify_pdf
     available_via: [stdin_json, python_api]
     params:
       path: {type: string, required: true}
-      layout: {type: object, required: false}
+      layout: {type: object, required: false, schema: layout}
     returns: {type: object, description: PDF structure, page-size, and color verification report.}
 side_effects:
   reads:
     - verify_svg and verify_pdf read one caller-selected file.
   writes:
     - write_svg and write_pdf atomically write one caller-selected file.
-    - write_barcode atomically writes each selected artifact after preflight validation.
+    - write_barcode preflights all targets and atomically writes each selected artifact individually.
+    - write_barcode is not a multi-file transaction and does not roll back an artifact already installed after an unexpected later failure.
 failure_modes:
   - Invalid ISBN values, layouts, formats, or request parameters return structured errors.
   - Existing outputs are rejected unless overwrite is true.
   - Missing output directories are rejected instead of being created implicitly.
+  - A completed verification may return success true with result.valid false and explanatory result.errors.
 validation:
   - python3 -m unittest discover -s tests
   - python3 -m build

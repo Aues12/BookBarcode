@@ -139,14 +139,16 @@ printf '%s' '{
 ```
 
 Supported operations are `generate_svg`, `write_svg`, `write_pdf`,
-`write_barcode`, `verify_svg`, and `verify_pdf`. See [SKILL.yaml](SKILL.yaml)
-for the machine-readable request and response contract.
+`write_barcode`, `verify_svg`, and `verify_pdf`. Agents and runtimes should read
+the [tool usage procedure](USE_TOOL.md); [SKILL.yaml](SKILL.yaml) is the
+canonical local machine-readable manifest.
 
 ## Documentation
 
 - [English user guide](docs/USAGE.md) — installation, complete CLI reference,
   custom layouts, printing guidance, common errors, and examples.
 - [Türkçe kullanım kılavuzu](docs/KULLANIM.md)
+- [Agent tool usage procedure](USE_TOOL.md)
 - [KDY size and colour reference notes](docs/KDY-REFERENCE-NOTES.md)
 - [KDY ölçü ve renk referans notları](docs/KDY-REFERANS-NOTLARI.md)
 

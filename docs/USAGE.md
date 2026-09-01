@@ -271,7 +271,9 @@ Supported operations:
 - `verify_svg`
 - `verify_pdf`
 
-The operation contract is defined in the top-level [SKILL.yaml](../SKILL.yaml).
+Agents and runtimes should follow the top-level [tool usage
+procedure](../USE_TOOL.md). The canonical local machine-readable operation
+manifest is [SKILL.yaml](../SKILL.yaml).
 
 ## End-to-end examples
 

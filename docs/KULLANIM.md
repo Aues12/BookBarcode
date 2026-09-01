@@ -276,8 +276,9 @@ Desteklenen operasyonlar:
 * `verify_svg`
 * `verify_pdf`
 
-İstek ve yanıt sözleşmesinin ayrıntıları için üst seviye [SKILL.yaml](../SKILL.yaml)
-kullanılmalıdır.
+Agent ve runtime'lar üst seviye [tool kullanım prosedürünü](../USE_TOOL.md)
+izlemelidir. Yerel ve makinece okunabilir kanonik operasyon manifesti
+[SKILL.yaml](../SKILL.yaml) dosyasıdır.
 
 ## Uçtan uca örnekler
 

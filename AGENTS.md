@@ -34,15 +34,25 @@ rendering, verification, or file-writing algorithms.
 Maintain the documentation as distinct, linked surfaces:
 
 * `README.md` — concise package overview and primary entrypoints;
-* `docs/KULLANIM.md` — complete Turkish user guide for package, CLI, and tool;
-* `docs/KDY-REFERANS-NOTLARI.md` — auditable interpretation of KDY dimensions
-  and process-black guidance;
-* `SKILL.yaml` — machine-readable operation contract;
+* `USE_TOOL.md` — operational procedure for agents and runtimes invoking the
+  JSON adapter;
+* `SKILL.yaml` — canonical local machine-readable operation contract;
+* `docs/USAGE.md` and `docs/KULLANIM.md` — complete English and Turkish user
+  guides for package, CLI, and tool;
+* `docs/KDY-REFERENCE-NOTES.md` and `docs/KDY-REFERANS-NOTLARI.md` — auditable
+  English and Turkish interpretations of KDY dimensions and process-black
+  guidance;
 * `AGENTS.md` — architecture, maintenance, quality, and release policy.
 
 When CLI syntax, public API, layout behavior, or output policy changes, update
 every affected document in the same change. Examples must be executable against
 the current implementation; do not preserve obsolete `main.py` commands.
+
+Before invoking, reviewing, or changing the agent JSON adapter, read
+`USE_TOOL.md` completely. Keep procedural invocation guidance there rather than
+duplicating it in this maintenance policy. `SKILL.yaml` is the canonical local
+manifest; an external agent-tools registry is an integration copy and must be
+reviewed separately when the local contract changes.
 
 Third-party reference binaries require confirmed redistribution rights before
 entering the repository or package archives. Until the KDY source PDF's rights
@@ -65,7 +75,8 @@ bookbarcode/
 
 tool.py                  agent-tools parameter/response adapter
 isbn_barcode.py          JSON stdin/stdout entrypoint
-SKILL.yaml               machine-readable tool contract
+USE_TOOL.md              agent invocation and safety procedure
+SKILL.yaml               canonical machine-readable tool contract
 pyproject.toml           package and console-script metadata
 ```
 
@@ -140,9 +151,10 @@ For each change:
 3. Implement the smallest coherent change.
 4. Run the package and adapter test suite.
 5. Run the repository aggregate tests and metadata checks.
-6. Update `README.md`, `SKILL.yaml`, registry metadata, and examples when a
-   public operation or parameter changes.
-   Update `docs/KULLANIM.md` whenever user-facing package or CLI behavior changes.
+6. Update `README.md`, `USE_TOOL.md`, `SKILL.yaml`, examples, and affected user
+   guides when a public operation or parameter changes. Review external
+   agent-tools registry metadata separately when this repository is integrated
+   there.
 7. Build a wheel and source distribution for packaging-related changes.
 8. Inspect generated SVG/PDF output when geometry or rendering changes.
 
@@ -216,7 +228,8 @@ Classify proposed work before implementation:
 * **geometry change** — physical output; requires both renderer tests;
 * **renderer change** — serialized format; requires verification updates;
 * **public API change** — requires docs, examples, compatibility assessment;
-* **adapter change** — requires `SKILL.yaml`, registry, and JSON contract review;
+* **adapter change** — requires `SKILL.yaml`, `USE_TOOL.md`, JSON contract, and
+  any external registry integration review;
 * **release change** — requires package build and archive inspection.
 
 Record consequential decisions in commit or pull-request context, including the
