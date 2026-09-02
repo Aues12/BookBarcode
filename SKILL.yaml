@@ -52,6 +52,8 @@ schemas:
       side_margin_mm: {type: number_or_null, required: false, unit: mm}
       left_margin_mm: {type: number_or_null, required: false, unit: mm}
       right_margin_mm: {type: number_or_null, required: false, unit: mm}
+    constraints:
+      - Resolved left and right quiet zones must be at least 11X and 7X respectively, where X is one EAN-13 module width.
   formats:
     type: array
     items: {type: string, enum: [svg, pdf]}
@@ -127,7 +129,8 @@ operations:
     params:
       path: {type: string, required: true}
       layout: {type: object, required: false, schema: layout}
-    returns: {type: object, description: PDF structure, page-size, and color verification report.}
+      isbn: {type: string, required: false, description: Expected ISBN-13; PDF text supplies the value when omitted.}
+    returns: {type: object, description: PDF structure, page-size, process-black, ISBN text, EAN module, and geometry verification report.}
 side_effects:
   reads:
     - verify_svg and verify_pdf read one caller-selected file.

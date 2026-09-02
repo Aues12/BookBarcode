@@ -64,6 +64,10 @@ class Barcode:
             path,
             self.to_pdf(),
             suffix=".pdf",
-            verifier=lambda candidate: verify_pdf(candidate, self.layout),
+            verifier=lambda candidate: verify_pdf(
+                candidate,
+                self.layout,
+                expected_isbn=self.isbn,
+            ),
             overwrite=overwrite,
         )

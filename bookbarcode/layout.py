@@ -60,6 +60,7 @@ class BarcodeLayout:
             if value is not None and value < 0:
                 raise ValueError(f"{name} cannot be negative")
         _ = self.module_width_mm
+        self._validate_quiet_zones()
         if self.bar_height <= 0:
             raise ValueError("bar height must be greater than zero")
         lowest_bar = self.bar_top_mm + self.bar_height + self.guard_extension_mm
@@ -134,6 +135,26 @@ class BarcodeLayout:
         """Return the final right quiet area in millimetres."""
         explicit = self.effective_right_margin_mm
         return explicit if explicit is not None else RIGHT_QUIET_MODULES * self.module_width_mm
+
+    def _validate_quiet_zones(self) -> None:
+        """Require custom margins to preserve the EAN-13 quiet-zone minima."""
+        module_width = self.module_width_mm
+        minimum_left = LEFT_QUIET_MODULES * module_width
+        minimum_right = RIGHT_QUIET_MODULES * module_width
+        if self.resolved_left_margin_mm < minimum_left and not math.isclose(
+            self.resolved_left_margin_mm, minimum_left, abs_tol=1e-12
+        ):
+            raise ValueError(
+                "left quiet zone must be at least 11 modules (11X); "
+                "increase left_margin_mm or reduce the symbol width"
+            )
+        if self.resolved_right_margin_mm < minimum_right and not math.isclose(
+            self.resolved_right_margin_mm, minimum_right, abs_tol=1e-12
+        ):
+            raise ValueError(
+                "right quiet zone must be at least 7 modules (7X); "
+                "increase right_margin_mm or reduce the symbol width"
+            )
 
     @property
     def title_baseline_mm(self) -> float:

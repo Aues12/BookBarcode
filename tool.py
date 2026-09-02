@@ -112,7 +112,11 @@ def write_pdf(
     """Write one verified process-black PDF through the package API."""
     barcode = _barcode(isbn, display_text, layout)
     path = barcode.write_pdf(output_path, overwrite=overwrite)
-    report = library_verify_pdf(path, barcode.layout)
+    report = library_verify_pdf(
+        path,
+        barcode.layout,
+        expected_isbn=barcode.isbn,
+    )
     return _artifact_result(barcode, path, "pdf", report.to_dict())
 
 
@@ -140,7 +144,11 @@ def write_barcode(
             report = library_verify_svg(path, barcode.isbn, barcode.layout)
         else:
             path = barcode.write_pdf(targets[kind], overwrite=overwrite)
-            report = library_verify_pdf(path, barcode.layout)
+            report = library_verify_pdf(
+                path,
+                barcode.layout,
+                expected_isbn=barcode.isbn,
+            )
         outputs.append(_artifact_result(barcode, path, kind, report.to_dict()))
     return {"isbn": barcode.isbn, "outputs": outputs}
 
@@ -166,16 +174,25 @@ def verify_svg(
 def verify_pdf(
     path: str | Path,
     layout: dict[str, Any] | BarcodeLayout | None = None,
+    *,
+    isbn: str | None = None,
 ) -> dict[str, Any]:
-    """Return a JSON-friendly PDF verification report."""
+    """Return a JSON-friendly PDF barcode verification report."""
     source = _validate_input_path(path, ".pdf")
     resolved_layout = build_layout(layout)
-    report = library_verify_pdf(source, resolved_layout)
-    return {
+    report = library_verify_pdf(
+        source,
+        resolved_layout,
+        expected_isbn=isbn,
+    )
+    result = {
         "path": str(source),
         **report.to_dict(),
         "layout": _layout_metadata(resolved_layout),
     }
+    if isbn is not None:
+        result["isbn"] = Barcode(isbn, layout=resolved_layout).isbn
+    return result
 
 
 def run(input_data: dict[str, Any]) -> dict[str, Any]:
@@ -305,7 +322,7 @@ def _parse_request(input_data: Any) -> tuple[str, dict[str, Any]]:
         "write_pdf": {"isbn", "output_path", "display_text", "layout", "overwrite"},
         "write_barcode": {"isbn", "output_base", "formats", "display_text", "layout", "overwrite"},
         "verify_svg": {"path", "isbn", "layout"},
-        "verify_pdf": {"path", "layout"},
+        "verify_pdf": {"path", "layout", "isbn"},
     }[operation]
     unexpected = set(params) - allowed
     if unexpected:

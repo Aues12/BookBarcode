@@ -108,7 +108,7 @@ from bookbarcode import Barcode, BarcodeLayout
 layout = BarcodeLayout(
     width_mm=38,
     height_mm=20,
-    side_margin_mm=3,
+    side_margin_mm=3.8,
     bar_height_mm=12.5,
 )
 barcode = Barcode(
@@ -119,6 +119,10 @@ barcode = Barcode(
 barcode.write_svg("book-barcode.svg")
 barcode.write_pdf("book-barcode.pdf")
 ```
+
+One module (`X`) is the narrowest EAN-13 bar/space unit. Custom margins are
+accepted only when they preserve quiet zones of at least `11X` on the left and
+`7X` on the right.
 
 ## Agent-tools JSON interface
 
@@ -154,8 +158,9 @@ canonical local machine-readable manifest.
 
 ## Quality and printing
 
-BookBarcode verifies the serialized SVG/PDF structure, dimensions, barcode
-modules, guard bars, readable digits, and colour intent where applicable.
+BookBarcode verifies serialized SVG and PDF dimensions, barcode modules, guard
+bars, readable ISBN digits, physical geometry, and colour intent. PDF checks
+parse the content stream rather than trusting the renderer's input geometry.
 For production, keep quiet zones clear, do not scale the barcode
 non-proportionally or rasterize it, and scan a printed sample after printer
 preflight.

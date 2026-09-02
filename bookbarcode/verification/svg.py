@@ -8,8 +8,10 @@ from xml.etree import ElementTree
 from ..ean13 import GUARD_MODULES, SYMBOL_MODULES, encode_ean13
 from ..isbn import validate_isbn13
 from ..layout import BarcodeLayout
-from ..renderers.svg import CMYK_BLACK, format_mm
 from .result import VerificationResult
+
+
+EXPECTED_CMYK_BLACK = "0,0,0,100"
 
 
 def verify_svg(
@@ -28,8 +30,8 @@ def verify_svg(
 
     namespace = {"svg": "http://www.w3.org/2000/svg"}
     errors: list[str] = []
-    width = format_mm(resolved_layout.width_mm)
-    height = format_mm(resolved_layout.height_mm)
+    width = _format_mm(resolved_layout.width_mm)
+    height = _format_mm(resolved_layout.height_mm)
     if root.tag != "{http://www.w3.org/2000/svg}svg":
         errors.append("root element is not SVG")
     if root.get("width") != f"{width}mm":
@@ -40,7 +42,7 @@ def verify_svg(
         errors.append("viewBox does not match the physical dimensions")
 
     bars_group = root.find(".//svg:g[@id='bars']", namespace)
-    if bars_group is None or bars_group.get("data-cmyk") != CMYK_BLACK:
+    if bars_group is None or bars_group.get("data-cmyk") != EXPECTED_CMYK_BLACK:
         errors.append("bars are not marked as C:0 M:0 Y:0 K:100")
 
     reconstructed = ["0"] * SYMBOL_MODULES
@@ -102,3 +104,8 @@ def verify_svg(
     if "".join(item.text or "" for item in readable) != normalized_isbn:
         errors.append("human-readable digits do not match the expected ISBN")
     return VerificationResult(tuple(errors))
+
+
+def _format_mm(value: float) -> str:
+    """Independently format the four-decimal SVG millimetre convention."""
+    return f"{value:.4f}".rstrip("0").rstrip(".")

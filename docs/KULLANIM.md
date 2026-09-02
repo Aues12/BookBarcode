@@ -240,7 +240,7 @@ from bookbarcode import Barcode, BarcodeLayout
 
 layout = BarcodeLayout.from_preset(
     "normal",
-    side_margin_mm=3,
+    side_margin_mm=3.5,
     bar_height_mm=12.5,
 )
 barcode = Barcode(
@@ -251,6 +251,31 @@ barcode = Barcode(
 barcode.write_svg("book-barcode.svg")
 barcode.write_pdf("book-barcode.pdf")
 ```
+
+Bir modül (`X`), EAN-13 barkodundaki en dar çubuk/boşluk birimidir. Bütün çubuk
+ve boşluk genişlikleri `X`'in tam sayı katlarıdır. Özel margin değerleri yalnız
+sol quiet zone en az `11X`, sağ quiet zone en az `7X` kaldığında kabul edilir;
+daha küçük değerler standart dışı layout olarak reddedilir.
+
+Mevcut bir PDF'yi amaçlanan ISBN ve layout'a göre doğrulamak için:
+
+```python
+from bookbarcode import BarcodeLayout, verify_pdf
+
+report = verify_pdf(
+    "book-barcode.pdf",
+    BarcodeLayout.from_preset("normal"),
+    expected_isbn="9786253798338",
+)
+if not report.valid:
+    raise RuntimeError("; ".join(report.errors))
+```
+
+`expected_isbn` geriye dönük uyumluluk için opsiyoneldir; amaçlanan ISBN
+biliniyorsa verilmesi önerilir. PDF doğrulaması serileştirilmiş content stream'i
+ayrıştırarak sayfa ölçüsünü, process black kullanımını, okunabilir ISBN metnini
+ve konumlarını, çubuk geometrisini, koruma çubuklarını ve yeniden oluşturulan 95
+modüllük EAN desenini denetler.
 
 ## Agent-tools JSON arayüzü
 
@@ -356,5 +381,5 @@ python3 -m unittest discover -s tests -v
 ```
 
 Testler ISBN/EAN vektörlerini, fiziksel layout'u, SVG/PDF render işlemlerini,
-CMYK komutlarını, bozulmuş çıktı tespitini, CLI'yi ve agent JSON sözleşmesini
-denetler.
+CMYK komutlarını, bozulmuş SVG/PDF metin ve geometri tespitini, CLI'yi ve tüm
+agent JSON operasyonlarını denetler.

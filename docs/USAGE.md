@@ -235,7 +235,7 @@ from bookbarcode import Barcode, BarcodeLayout
 
 layout = BarcodeLayout.from_preset(
     "normal",
-    side_margin_mm=3,
+    side_margin_mm=3.5,
     bar_height_mm=12.5,
 )
 barcode = Barcode(
@@ -246,6 +246,31 @@ barcode = Barcode(
 barcode.write_svg("book-barcode.svg")
 barcode.write_pdf("book-barcode.pdf")
 ```
+
+One module (`X`) is the narrowest bar/space unit in an EAN-13 symbol, and every
+bar and space width is an integer multiple of it. Custom margins are accepted
+only when they leave quiet zones of at least `11X` on the left and `7X` on the
+right; smaller values are rejected as non-standard layouts.
+
+Verify an existing PDF against the intended ISBN and layout:
+
+```python
+from bookbarcode import BarcodeLayout, verify_pdf
+
+report = verify_pdf(
+    "book-barcode.pdf",
+    BarcodeLayout.from_preset("normal"),
+    expected_isbn="9786253798338",
+)
+if not report.valid:
+    raise RuntimeError("; ".join(report.errors))
+```
+
+`expected_isbn` is optional for backward compatibility, but supplying it is
+recommended whenever the intended ISBN is known. PDF verification parses the
+serialized content stream and checks page size, process black, readable ISBN
+text and positions, bar geometry, guard bars, and the reconstructed 95-module
+EAN pattern.
 
 ## Agent-tools JSON interface
 
@@ -352,4 +377,5 @@ python3 -m unittest discover -s tests -v
 ```
 
 The tests cover ISBN/EAN vectors, physical layouts, SVG/PDF rendering, CMYK
-commands, tampered artifact detection, the CLI, and the agent JSON contract.
+commands, tampered SVG/PDF text and geometry detection, the CLI, and every agent
+JSON operation.

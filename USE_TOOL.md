@@ -150,7 +150,7 @@ the process.
 | Create one verified PDF file | `write_pdf` | No caller file | One PDF |
 | Create a verified SVG/PDF selection | `write_barcode` | No caller file | One or two artifacts |
 | Inspect an existing SVG against an ISBN and layout | `verify_svg` | One SVG | No |
-| Inspect PDF framing, page size, and process-black command | `verify_pdf` | One PDF | No |
+| Inspect an existing PDF's structure, ISBN text, EAN modules, geometry, page size, and process black | `verify_pdf` | One PDF | No |
 
 Prefer `generate_svg` when the caller only needs content and has not authorized
 filesystem changes. Prefer a `write_*` operation only when file creation is part
@@ -163,6 +163,9 @@ they do not repair or replace those files.
 
 - `isbn` must normalize to a checksum-valid ISBN-13 beginning with `978` or
   `979`. Invalid values are rejected and never silently corrected.
+- `verify_pdf.isbn` is optional for backward compatibility. Supply it whenever
+  the expected ISBN is known. When omitted, the verifier extracts and validates
+  the thirteen human-readable PDF digits and checks the bars against them.
 - `display_text` is optional. Its digits must exactly match the encoded ISBN;
   only punctuation and hyphen placement may differ.
 - If `display_text` is omitted, BookBarcode uses a readable `3-3-3-3-1`
@@ -185,7 +188,9 @@ All dimensions are millimetres. `layout` may contain only these fields:
 `normal` starts from 35 x 19 mm and `minimum` from 26 x 14 mm. Explicit width,
 height, bar-height, and margin fields override their preset values. An explicit
 left or right margin overrides `side_margin_mm` for that side. Boolean and
-non-finite numeric values are rejected.
+non-finite numeric values are rejected. One module (`X`) is the narrowest EAN-13
+bar/space unit. Resolved margins must preserve quiet zones of at least `11X` on
+the left and `7X` on the right; smaller custom margins are rejected.
 
 Example:
 
@@ -195,7 +200,7 @@ Example:
   "width_mm": 38,
   "height_mm": 20,
   "bar_height_mm": 12.5,
-  "left_margin_mm": 3.5,
+  "left_margin_mm": 3.8,
   "right_margin_mm": 2.5
 }
 ```
@@ -255,12 +260,15 @@ Operation-specific result fields:
   `layout`, `color`, `verification`.
 - `write_barcode`: `isbn` and an `outputs` array of written artifact records.
 - `verify_svg`: `path`, `isbn`, `valid`, `errors`, `layout`.
-- `verify_pdf`: `path`, `valid`, `errors`, `layout`.
+- `verify_pdf`: `path`, `valid`, `errors`, `layout`, plus `isbn` when the caller
+  supplied the expected value.
 
-`verify_pdf` does not accept an expected ISBN and does not independently decode
-the PDF's bars or human-readable digits. Its scope is PDF framing, requested page
-size, and the presence of the process-black command. `verify_svg` performs the
-ISBN/module, guard-bar, text, dimensions, geometry, and CMYK-intent checks.
+`verify_pdf` independently parses the uncompressed content stream and verifies
+PDF framing, stream length, requested page size, background and process-black
+commands, title and human-readable ISBN digits, digit positions, bar geometry,
+guard bars, and the reconstructed 95-module EAN pattern. `verify_svg` performs
+the corresponding ISBN/module, guard-bar, text, dimensions, geometry, and
+CMYK-intent checks on XML elements.
 
 ## File safety and atomicity
 
@@ -338,6 +346,19 @@ printf '%s' '{
   "operation": "verify_svg",
   "params": {
     "path": "/tmp/book-barcode.svg",
+    "isbn": "9786253798338",
+    "layout": {"preset": "normal"}
+  }
+}' | python3 isbn_barcode.py
+```
+
+Verify an existing PDF against its expected ISBN:
+
+```bash
+printf '%s' '{
+  "operation": "verify_pdf",
+  "params": {
+    "path": "/tmp/book-barcode.pdf",
     "isbn": "9786253798338",
     "layout": {"preset": "normal"}
   }
