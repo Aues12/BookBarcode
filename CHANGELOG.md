@@ -13,6 +13,13 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   release tags, and commit history.
 - Added GitHub Actions CI across Python 3.9-3.13 on Linux, with a gated
   distribution build and metadata check.
+- Added a generated barcode preview using the example ISBN from the
+  International ISBN Agency's Users' Manual.
+
+### Changed
+
+- Reworked README onboarding around explicit CLI, Python API, and agent entry
+  points, with complete GitHub and editable-development installation paths.
 
 ## [0.4.0] - 2026-09-02
 

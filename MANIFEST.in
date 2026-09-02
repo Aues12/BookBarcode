@@ -7,6 +7,6 @@ include isbn_barcode.py
 include tool.py
 include SKILL.yaml
 recursive-include bookbarcode *.py py.typed
-recursive-include docs *.md
+recursive-include docs *.md *.svg
 recursive-include examples *.py
 recursive-include tests *.py

@@ -13,18 +13,33 @@ artifact before writing it.
 
 The package has no runtime third-party dependencies and supports Python 3.9+.
 
+![BookBarcode example output for ISBN 978-92-95055-12-4](https://raw.githubusercontent.com/Aues12/BookBarcode/main/docs/assets/bookbarcode-preview.svg)
+
+*Example generated from the ISBN used in the International ISBN Agency's
+[Users' Manual](https://www.isbn-international.org/content/isbn-users-manual/29).*
+
+## Choose an entrypoint
+
+| I want to... | Start with |
+|---|---|
+| Generate a barcode from a terminal | [Human CLI](#quick-start) |
+| Use BookBarcode from Python | [Python API](#python-api) |
+| Call BookBarcode from an agent | [JSON agent interface](#agent-tools-json-interface) |
+
 ## Quick start
 
-Install from the repository during development:
+Install the current release directly from GitHub:
 
 ```bash
-python3 -m pip install -e .
+python3 -m pip install \
+  "git+https://github.com/Aues12/BookBarcode.git@v0.4.0"
 ```
 
 Generate both formats with a valid ISBN-13:
 
 ```bash
-bookbarcode 9786253798338
+bookbarcode 9789295055124 \
+  --display "ISBN 978-92-95055-12-4"
 ```
 
 This creates and verifies these files in the current directory:
@@ -38,10 +53,19 @@ The command refuses to replace an existing file unless you add `--overwrite`.
 It writes a temporary sibling, verifies it, then atomically installs it at the
 target path.
 
+For an editable development installation, clone the repository first:
+
+```bash
+git clone https://github.com/Aues12/BookBarcode.git
+cd BookBarcode
+python3 -m pip install -e .
+```
+
 You can also run the command from this repository without installing it:
 
 ```bash
-python3 -m bookbarcode.cli 9786253798338
+python3 -m bookbarcode.cli 9789295055124 \
+  --display "ISBN 978-92-95055-12-4"
 ```
 
 ## Common tasks

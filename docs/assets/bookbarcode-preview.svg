@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="35mm" height="19mm" viewBox="0 0 35 19" role="img" aria-labelledby="title desc">
+  <title id="title">ISBN 978-92-95055-12-4 barcode</title>
+  <desc id="desc">EAN-13 ISBN 9789295055124; C:0 M:0 Y:0 K:100; module 0.3097 mm.</desc>
+  <style>.ink-black { fill: #000000; fill: device-cmyk(0% 0% 0% 100%, #000000); }</style>
+  <rect width="35" height="19" fill="#ffffff"/>
+  <text id="isbn-title" class="ink-black" data-cmyk="0,0,0,100" x="17.5" y="2.66" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="2.09">ISBN 978-92-95055-12-4</text>
+  <g id="bars" class="ink-black" data-cmyk="0,0,0,100" shape-rendering="crispEdges">
+    <rect class="guard" data-module="0" x="3.4071" y="3.61" width="0.3097" height="13.3287"/>
+    <rect class="guard" data-module="2" x="4.0265" y="3.61" width="0.3097" height="13.3287"/>
+    <rect class="data" data-module="4" x="4.646" y="3.61" width="0.9292" height="11.78"/>
+    <rect class="data" data-module="8" x="5.885" y="3.61" width="0.6195" height="11.78"/>
+    <rect class="data" data-module="13" x="7.4336" y="3.61" width="0.3097" height="11.78"/>
+    <rect class="data" data-module="16" x="8.3628" y="3.61" width="0.3097" height="11.78"/>
+    <rect class="data" data-module="19" x="9.292" y="3.61" width="0.3097" height="11.78"/>
+    <rect class="data" data-module="21" x="9.9115" y="3.61" width="0.9292" height="11.78"/>
+    <rect class="data" data-module="26" x="11.4602" y="3.61" width="0.3097" height="11.78"/>
+    <rect class="data" data-module="29" x="12.3894" y="3.61" width="0.6195" height="11.78"/>
+    <rect class="data" data-module="33" x="13.6283" y="3.61" width="0.3097" height="11.78"/>
+    <rect class="data" data-module="35" x="14.2478" y="3.61" width="0.9292" height="11.78"/>
+    <rect class="data" data-module="39" x="15.4867" y="3.61" width="0.6195" height="11.78"/>
+    <rect class="data" data-module="44" x="17.0354" y="3.61" width="0.3097" height="11.78"/>
+    <rect class="guard" data-module="46" x="17.6549" y="3.61" width="0.3097" height="13.3287"/>
+    <rect class="guard" data-module="48" x="18.2743" y="3.61" width="0.3097" height="13.3287"/>
+    <rect class="data" data-module="50" x="18.8938" y="3.61" width="0.9292" height="11.78"/>
+    <rect class="data" data-module="55" x="20.4425" y="3.61" width="0.3097" height="11.78"/>
+    <rect class="data" data-module="57" x="21.0619" y="3.61" width="0.3097" height="11.78"/>
+    <rect class="data" data-module="60" x="21.9912" y="3.61" width="0.9292" height="11.78"/>
+    <rect class="data" data-module="64" x="23.2301" y="3.61" width="0.3097" height="11.78"/>
+    <rect class="data" data-module="67" x="24.1593" y="3.61" width="0.9292" height="11.78"/>
+    <rect class="data" data-module="71" x="25.3982" y="3.61" width="0.6195" height="11.78"/>
+    <rect class="data" data-module="75" x="26.6372" y="3.61" width="0.6195" height="11.78"/>
+    <rect class="data" data-module="78" x="27.5664" y="3.61" width="0.6195" height="11.78"/>
+    <rect class="data" data-module="81" x="28.4956" y="3.61" width="0.6195" height="11.78"/>
+    <rect class="data" data-module="85" x="29.7345" y="3.61" width="0.3097" height="11.78"/>
+    <rect class="data" data-module="87" x="30.354" y="3.61" width="0.9292" height="11.78"/>
+    <rect class="guard" data-module="92" x="31.9027" y="3.61" width="0.3097" height="13.3287"/>
+    <rect class="guard" data-module="94" x="32.5221" y="3.61" width="0.3097" height="13.3287"/>
+  </g>
+  <g id="human-readable" class="ink-black" data-cmyk="0,0,0,100" font-family="OCR-B, OCRB, Arial, Helvetica, sans-serif" font-size="2.755" text-anchor="middle">
+    <text x="2.1681" y="17.86">9</text>
+    <text x="5.4204" y="17.86">7</text>
+    <text x="7.5885" y="17.86">8</text>
+    <text x="9.7566" y="17.86">9</text>
+    <text x="11.9248" y="17.86">2</text>
+    <text x="14.0929" y="17.86">9</text>
+    <text x="16.2611" y="17.86">5</text>
+    <text x="19.9779" y="17.86">0</text>
+    <text x="22.146" y="17.86">5</text>
+    <text x="24.3142" y="17.86">5</text>
+    <text x="26.4823" y="17.86">1</text>
+    <text x="28.6504" y="17.86">2</text>
+    <text x="30.8186" y="17.86">4</text>
+  </g>
+</svg>
