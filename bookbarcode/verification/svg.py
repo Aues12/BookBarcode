@@ -7,7 +7,7 @@ from xml.etree import ElementTree
 
 from ..ean13 import GUARD_MODULES, SYMBOL_MODULES, encode_ean13
 from ..isbn import validate_isbn13
-from ..layout import BarcodeLayout
+from ..layout import LayoutSpec, ResolvedBarcodeLayout, resolve_layout
 from .result import VerificationResult
 
 
@@ -17,11 +17,11 @@ EXPECTED_CMYK_BLACK = "0,0,0,100"
 def verify_svg(
     path: str | Path,
     expected_isbn: str,
-    layout: BarcodeLayout | None = None,
+    layout: LayoutSpec | ResolvedBarcodeLayout | None = None,
 ) -> VerificationResult:
     """Verify SVG dimensions, modules, guard bars, text, and CMYK intent."""
     source = Path(path)
-    resolved_layout = layout or BarcodeLayout()
+    resolved_layout = resolve_layout(layout)
     normalized_isbn = validate_isbn13(expected_isbn)
     try:
         root = ElementTree.parse(source).getroot()
@@ -66,7 +66,7 @@ def verify_svg(
         if abs(measured_modules - module_count) > 0.001:
             errors.append("a bar width is not an integer number of modules")
         expected_x = (
-            resolved_layout.resolved_left_margin_mm
+            resolved_layout.symbol_left_mm
             + start * resolved_layout.module_width_mm
         )
         if abs(x_mm - expected_x) > 0.001:
@@ -88,7 +88,7 @@ def verify_svg(
                 reconstructed[module] = "1"
         if expected_guard:
             guard_count += 1
-        expected_height = resolved_layout.bar_height
+        expected_height = resolved_layout.data_bar_height_mm
         if expected_guard:
             expected_height += resolved_layout.guard_extension_mm
         if abs(height_mm - expected_height) > 0.001:

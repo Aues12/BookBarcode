@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from html import escape
 
-from ..geometry import build_bar_geometry, build_hri_positions
-from ..isbn import validate_display_text, validate_isbn13
-from ..layout import BarcodeLayout
+from ..geometry import build_barcode_geometry
+from ..layout import LayoutSpec, ResolvedBarcodeLayout
 
 
 CMYK_BLACK = "0,0,0,100"
@@ -16,16 +15,17 @@ SVG_CMYK_BLACK = "device-cmyk(0% 0% 0% 100%, #000000)"
 def render_svg(
     isbn: str,
     display_text: str,
-    layout: BarcodeLayout | None = None,
+    layout: LayoutSpec | ResolvedBarcodeLayout | None = None,
 ) -> str:
     """Return a complete SVG document for a validated ISBN-13.
 
     All physical dimensions use millimetres. The SVG includes a black RGB
     fallback plus device-CMYK intent metadata for compatible applications.
     """
-    resolved_layout = layout or BarcodeLayout()
-    normalized_isbn = validate_isbn13(isbn)
-    normalized_display = validate_display_text(display_text, normalized_isbn)
+    geometry = build_barcode_geometry(isbn, display_text, layout)
+    resolved_layout = geometry.layout
+    normalized_isbn = geometry.isbn
+    normalized_display = geometry.display_text
     width = _mm(resolved_layout.width_mm)
     height = _mm(resolved_layout.height_mm)
     lines = [
@@ -44,10 +44,11 @@ def render_svg(
         f'  <rect width="{width}" height="{height}" fill="#ffffff"/>',
         (
             f'  <text id="isbn-title" class="ink-black" data-cmyk="{CMYK_BLACK}" '
-            f'x="{_mm(resolved_layout.width_mm / 2)}" '
-            f'y="{_mm(resolved_layout.title_baseline_mm)}" text-anchor="middle" '
+            f'x="{_mm(geometry.title.x_mm)}" '
+            f'y="{_mm(geometry.title.baseline_mm)}" '
+            f'text-anchor="{geometry.title.anchor}" '
             'font-family="Arial, Helvetica, sans-serif" '
-            f'font-size="{_mm(resolved_layout.title_font_size_mm)}">'
+            f'font-size="{_mm(geometry.title.font_size_mm)}">'
             f'{escape(normalized_display)}</text>'
         ),
         (
@@ -55,11 +56,11 @@ def render_svg(
             'shape-rendering="crispEdges">'
         ),
     ]
-    for bar in build_bar_geometry(normalized_isbn, resolved_layout):
+    for bar in geometry.bars:
         kind = "guard" if bar.is_guard else "data"
         lines.append(
             f'    <rect class="{kind}" data-module="{bar.module_start}" '
-            f'x="{_mm(bar.x_mm)}" y="{_mm(resolved_layout.bar_top_mm)}" '
+            f'x="{_mm(bar.x_mm)}" y="{_mm(bar.y_mm)}" '
             f'width="{_mm(bar.width_mm)}" height="{_mm(bar.height_mm)}"/>'
         )
     lines.extend(
@@ -68,14 +69,15 @@ def render_svg(
             (
                 f'  <g id="human-readable" class="ink-black" data-cmyk="{CMYK_BLACK}" '
                 'font-family="OCR-B, OCRB, Arial, Helvetica, sans-serif" '
-                f'font-size="{_mm(resolved_layout.hri_font_size_mm)}" text-anchor="middle">'
+                f'font-size="{_mm(geometry.hri_glyphs[0].font_size_mm)}" '
+                f'text-anchor="{geometry.hri_glyphs[0].anchor}">'
             ),
         ]
     )
-    for glyph in build_hri_positions(normalized_isbn, resolved_layout):
+    for glyph in geometry.hri_glyphs:
         lines.append(
             f'    <text x="{_mm(glyph.x_mm)}" '
-            f'y="{_mm(resolved_layout.hri_baseline_mm)}">{glyph.text}</text>'
+            f'y="{_mm(glyph.baseline_mm)}">{glyph.text}</text>'
         )
     lines.extend(["  </g>", "</svg>", ""])
     return "\n".join(lines)

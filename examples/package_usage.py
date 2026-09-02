@@ -12,7 +12,7 @@ sys.path.insert(0, str(TOOL_DIR))
 from bookbarcode import Barcode, BarcodeLayout  # noqa: E402
 
 
-layout = BarcodeLayout.from_preset("normal", side_margin_mm=3)
+layout = BarcodeLayout.from_preset("normal", side_margin_mm=3.5)
 barcode = Barcode(
     "9786253798338",
     display_text="ISBN 978-625-379-833-8",

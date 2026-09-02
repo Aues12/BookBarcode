@@ -2,24 +2,22 @@
 
 from __future__ import annotations
 
-from ..geometry import build_bar_geometry, build_hri_positions
-from ..isbn import validate_display_text, validate_isbn13
-from ..layout import BarcodeLayout
+from ..geometry import build_barcode_geometry
+from ..layout import LayoutSpec, ResolvedBarcodeLayout
 
 
 def render_pdf(
     isbn: str,
     display_text: str,
-    layout: BarcodeLayout | None = None,
+    layout: LayoutSpec | ResolvedBarcodeLayout | None = None,
 ) -> bytes:
     """Return a self-contained PDF using only C:0 M:0 Y:0 K:100 for ink.
 
     The renderer writes a deliberately small PDF 1.4 object graph directly,
     avoiding a runtime PDF dependency and retaining exact control of color.
     """
-    resolved_layout = layout or BarcodeLayout()
-    normalized_isbn = validate_isbn13(isbn)
-    normalized_display = validate_display_text(display_text, normalized_isbn)
+    geometry = build_barcode_geometry(isbn, display_text, layout)
+    resolved_layout = geometry.layout
     page_width = mm_to_points(resolved_layout.width_mm)
     page_height = mm_to_points(resolved_layout.height_mm)
     commands = [
@@ -30,25 +28,25 @@ def render_pdf(
         "0 0 0 1 k",
     ]
 
-    title_size = mm_to_points(resolved_layout.title_font_size_mm)
-    title_width = len(normalized_display) * title_size * 0.52
-    title_x = (page_width - title_width) / 2
-    title_y = page_height - mm_to_points(resolved_layout.title_baseline_mm)
+    title_size = mm_to_points(geometry.title.font_size_mm)
+    title_width = len(geometry.title.text) * title_size * 0.52
+    title_x = mm_to_points(geometry.title.x_mm) - title_width / 2
+    title_y = page_height - mm_to_points(geometry.title.baseline_mm)
     commands.append(
         f"BT /F1 {title_size:.4f} Tf 1 0 0 1 {title_x:.4f} {title_y:.4f} "
-        f"Tm ({_escape_pdf_text(normalized_display)}) Tj ET"
+        f"Tm ({_escape_pdf_text(geometry.title.text)}) Tj ET"
     )
 
-    for bar in build_bar_geometry(normalized_isbn, resolved_layout):
-        y = page_height - mm_to_points(resolved_layout.bar_top_mm + bar.height_mm)
+    for bar in geometry.bars:
+        y = page_height - mm_to_points(bar.y_mm + bar.height_mm)
         commands.append(
             f"{mm_to_points(bar.x_mm):.4f} {y:.4f} "
             f"{mm_to_points(bar.width_mm):.4f} {mm_to_points(bar.height_mm):.4f} re f"
         )
 
-    hri_size = mm_to_points(resolved_layout.hri_font_size_mm)
-    hri_y = page_height - mm_to_points(resolved_layout.hri_baseline_mm)
-    for glyph in build_hri_positions(normalized_isbn, resolved_layout):
+    for glyph in geometry.hri_glyphs:
+        hri_size = mm_to_points(glyph.font_size_mm)
+        hri_y = page_height - mm_to_points(glyph.baseline_mm)
         glyph_x = mm_to_points(glyph.x_mm) - hri_size * 0.3
         commands.append(
             f"BT /F2 {hri_size:.4f} Tf 1 0 0 1 {glyph_x:.4f} {hri_y:.4f} "

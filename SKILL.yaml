@@ -34,10 +34,15 @@ interfaces:
     entrypoint: bookbarcode/__init__.py
     callables:
       - Barcode
+      - BarcodeGeometry
       - BarcodeLayout
+      - LayoutSpec
+      - ResolvedBarcodeLayout
+      - build_barcode_geometry
       - encode_ean13
       - render_svg
       - render_pdf
+      - resolve_layout
       - verify_svg
       - verify_pdf
 schemas:

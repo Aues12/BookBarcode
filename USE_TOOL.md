@@ -52,6 +52,12 @@ directory is uncertain.
 The JSON adapter and human CLI are separate interfaces. Do not send JSON to the
 `bookbarcode` command, and do not pass CLI flags to `isbn_barcode.py`.
 
+The canonical layout formulas, dependencies, topological resolution order, and
+constraints are documented in `docs/MEASUREMENT-DAG.md`. Package integrations
+that need an explicit intent/resolution boundary may use `LayoutSpec`,
+`resolve_layout()`, `ResolvedBarcodeLayout`, and `BarcodeGeometry`; JSON callers
+continue to send the compact `layout` object documented below.
+
 ## Request contract
 
 The adapter reads one UTF-8 JSON object from stdin:

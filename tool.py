@@ -8,7 +8,8 @@ import sys
 from pathlib import Path
 from typing import Any, Callable
 
-from bookbarcode import Barcode, BarcodeLayout
+from bookbarcode import Barcode, BarcodeLayout, LayoutSpec, ResolvedBarcodeLayout
+from bookbarcode import resolve_layout as library_resolve_layout
 from bookbarcode import verify_pdf as library_verify_pdf
 from bookbarcode import verify_svg as library_verify_svg
 from bookbarcode.io import validate_output_path
@@ -35,14 +36,14 @@ LAYOUT_KEYS = {
 }
 
 
-def build_layout(layout: dict[str, Any] | BarcodeLayout | None = None) -> BarcodeLayout:
+def build_layout(layout: dict[str, Any] | LayoutSpec | None = None) -> LayoutSpec:
     """Translate a JSON-friendly layout object into a validated layout."""
     if layout is None:
         return BarcodeLayout()
-    if isinstance(layout, BarcodeLayout):
+    if isinstance(layout, LayoutSpec):
         return layout
     if not isinstance(layout, dict):
-        raise TypeError("layout must be an object, BarcodeLayout, or null")
+        raise TypeError("layout must be an object, LayoutSpec, BarcodeLayout, or null")
     unexpected = set(layout) - LAYOUT_KEYS
     if unexpected:
         names = ", ".join(sorted(unexpected))
@@ -75,7 +76,7 @@ def build_layout(layout: dict[str, Any] | BarcodeLayout | None = None) -> Barcod
 def generate_svg(
     isbn: str,
     display_text: str | None = None,
-    layout: dict[str, Any] | BarcodeLayout | None = None,
+    layout: dict[str, Any] | LayoutSpec | None = None,
 ) -> dict[str, Any]:
     """Generate SVG and metadata without writing to the filesystem."""
     barcode = _barcode(isbn, display_text, layout)
@@ -83,7 +84,7 @@ def generate_svg(
         "isbn": barcode.isbn,
         "display_text": barcode.display_text,
         "svg": barcode.to_svg(),
-        "layout": _layout_metadata(barcode.layout),
+        "layout": _layout_metadata(barcode.resolved_layout),
         "color": PROCESS_BLACK,
     }
 
@@ -92,13 +93,13 @@ def write_svg(
     isbn: str,
     output_path: str | Path,
     display_text: str | None = None,
-    layout: dict[str, Any] | BarcodeLayout | None = None,
+    layout: dict[str, Any] | LayoutSpec | None = None,
     overwrite: bool = False,
 ) -> dict[str, Any]:
     """Write one verified SVG through the package's atomic writer."""
     barcode = _barcode(isbn, display_text, layout)
     path = barcode.write_svg(output_path, overwrite=overwrite)
-    report = library_verify_svg(path, barcode.isbn, barcode.layout)
+    report = library_verify_svg(path, barcode.isbn, barcode.resolved_layout)
     return _artifact_result(barcode, path, "svg", report.to_dict())
 
 
@@ -106,7 +107,7 @@ def write_pdf(
     isbn: str,
     output_path: str | Path,
     display_text: str | None = None,
-    layout: dict[str, Any] | BarcodeLayout | None = None,
+    layout: dict[str, Any] | LayoutSpec | None = None,
     overwrite: bool = False,
 ) -> dict[str, Any]:
     """Write one verified process-black PDF through the package API."""
@@ -114,7 +115,7 @@ def write_pdf(
     path = barcode.write_pdf(output_path, overwrite=overwrite)
     report = library_verify_pdf(
         path,
-        barcode.layout,
+        barcode.resolved_layout,
         expected_isbn=barcode.isbn,
     )
     return _artifact_result(barcode, path, "pdf", report.to_dict())
@@ -125,7 +126,7 @@ def write_barcode(
     output_base: str | Path,
     formats: list[str] | None = None,
     display_text: str | None = None,
-    layout: dict[str, Any] | BarcodeLayout | None = None,
+    layout: dict[str, Any] | LayoutSpec | None = None,
     overwrite: bool = False,
 ) -> dict[str, Any]:
     """Write a preflighted SVG/PDF bundle using one validated Barcode."""
@@ -141,12 +142,12 @@ def write_barcode(
     for kind in selected:
         if kind == "svg":
             path = barcode.write_svg(targets[kind], overwrite=overwrite)
-            report = library_verify_svg(path, barcode.isbn, barcode.layout)
+            report = library_verify_svg(path, barcode.isbn, barcode.resolved_layout)
         else:
             path = barcode.write_pdf(targets[kind], overwrite=overwrite)
             report = library_verify_pdf(
                 path,
-                barcode.layout,
+                barcode.resolved_layout,
                 expected_isbn=barcode.isbn,
             )
         outputs.append(_artifact_result(barcode, path, kind, report.to_dict()))
@@ -156,7 +157,7 @@ def write_barcode(
 def verify_svg(
     path: str | Path,
     isbn: str,
-    layout: dict[str, Any] | BarcodeLayout | None = None,
+    layout: dict[str, Any] | LayoutSpec | None = None,
 ) -> dict[str, Any]:
     """Return a JSON-friendly SVG verification report."""
     source = _validate_input_path(path, ".svg")
@@ -173,7 +174,7 @@ def verify_svg(
 
 def verify_pdf(
     path: str | Path,
-    layout: dict[str, Any] | BarcodeLayout | None = None,
+    layout: dict[str, Any] | LayoutSpec | None = None,
     *,
     isbn: str | None = None,
 ) -> dict[str, Any]:
@@ -239,21 +240,24 @@ def main() -> None:
 def _barcode(
     isbn: str,
     display_text: str | None,
-    layout: dict[str, Any] | BarcodeLayout | None,
+    layout: dict[str, Any] | LayoutSpec | None,
 ) -> Barcode:
     """Build the package facade from adapter-friendly inputs."""
     return Barcode(isbn, display_text, build_layout(layout))
 
 
-def _layout_metadata(layout: BarcodeLayout) -> dict[str, float]:
+def _layout_metadata(
+    layout: LayoutSpec | ResolvedBarcodeLayout,
+) -> dict[str, float]:
     """Expose resolved physical measurements for downstream consumers."""
+    resolved = library_resolve_layout(layout)
     return {
-        "width_mm": layout.width_mm,
-        "height_mm": layout.height_mm,
-        "left_margin_mm": layout.resolved_left_margin_mm,
-        "right_margin_mm": layout.resolved_right_margin_mm,
-        "module_width_mm": layout.module_width_mm,
-        "bar_height_mm": layout.bar_height,
+        "width_mm": resolved.width_mm,
+        "height_mm": resolved.height_mm,
+        "left_margin_mm": resolved.left_quiet_zone_mm,
+        "right_margin_mm": resolved.right_quiet_zone_mm,
+        "module_width_mm": resolved.module_width_mm,
+        "bar_height_mm": resolved.data_bar_height_mm,
     }
 
 
@@ -269,7 +273,7 @@ def _artifact_result(
         "format": artifact_format,
         "isbn": barcode.isbn,
         "display_text": barcode.display_text,
-        "layout": _layout_metadata(barcode.layout),
+        "layout": _layout_metadata(barcode.resolved_layout),
         "color": PROCESS_BLACK,
         "verification": verification,
     }

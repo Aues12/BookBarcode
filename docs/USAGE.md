@@ -17,7 +17,9 @@ It generates two artifact types:
 
 See the [KDY size and colour reference notes](KDY-REFERENCE-NOTES.md) for the
 basis of the bundled presets. The original Turkish guide remains available as
-[Turkish documentation](KULLANIM.md).
+[Turkish documentation](KULLANIM.md). The
+[measurement dependency DAG](MEASUREMENT-DAG.md) is the canonical description
+of layout formulas, resolution order, and constraints.
 
 ## Requirements
 
@@ -251,6 +253,26 @@ One module (`X`) is the narrowest bar/space unit in an EAN-13 symbol, and every
 bar and space width is an integer multiple of it. Custom margins are accepted
 only when they leave quiet zones of at least `11X` on the left and `7X` on the
 right; smaller values are rejected as non-standard layouts.
+
+The package also exposes an explicit typed measurement pipeline:
+
+```python
+from bookbarcode import LayoutSpec, build_barcode_geometry, resolve_layout
+
+spec = LayoutSpec.from_preset("normal", side_margin_mm=3.5)
+resolved = resolve_layout(spec)
+geometry = build_barcode_geometry(
+    "9786253798338",
+    "ISBN 978-625-379-833-8",
+    resolved,
+)
+```
+
+`LayoutSpec` records caller intent and optional overrides.
+`ResolvedBarcodeLayout` contains the complete result with no optional
+measurements. `BarcodeGeometry` contains title, bar, and HRI coordinates shared
+by both renderers. Existing `BarcodeLayout` usage remains supported and eagerly
+validates through the same resolver.
 
 Verify an existing PDF against the intended ISBN and layout:
 

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from ..ean13 import GUARD_MODULES, SYMBOL_MODULES, encode_ean13
 from ..isbn import validate_isbn13
-from ..layout import BarcodeLayout
+from ..layout import LayoutSpec, ResolvedBarcodeLayout, resolve_layout
 from .result import VerificationResult
 
 
@@ -60,7 +60,7 @@ class _PdfText:
 
 def verify_pdf(
     path: str | Path,
-    layout: BarcodeLayout | None = None,
+    layout: LayoutSpec | ResolvedBarcodeLayout | None = None,
     *,
     expected_isbn: str | None = None,
 ) -> VerificationResult:
@@ -72,7 +72,7 @@ def verify_pdf(
     additionally requires both text and bars to encode that ISBN.
     """
     source = Path(path)
-    resolved_layout = layout or BarcodeLayout()
+    resolved_layout = resolve_layout(layout)
     normalized_expected = (
         None if expected_isbn is None else validate_isbn13(expected_isbn)
     )
@@ -105,7 +105,7 @@ def verify_pdf(
 
 def _verify_page_size(
     document: str,
-    layout: BarcodeLayout,
+    layout: ResolvedBarcodeLayout,
     errors: list[str],
 ) -> None:
     """Compare the serialized MediaBox with independently converted dimensions."""
@@ -144,7 +144,7 @@ def _extract_content_stream(data: bytes, errors: list[str]) -> bytes | None:
 
 def _parse_content_commands(
     lines: list[str],
-    layout: BarcodeLayout,
+    layout: ResolvedBarcodeLayout,
     errors: list[str],
 ) -> tuple[list[_PdfRectangle], list[_PdfText]]:
     """Parse the deliberately narrow command language emitted by BookBarcode."""
@@ -210,7 +210,7 @@ def _parse_content_commands(
 
 def _verify_text(
     texts: list[_PdfText],
-    layout: BarcodeLayout,
+    layout: ResolvedBarcodeLayout,
     expected_isbn: str | None,
     errors: list[str],
 ) -> str | None:
@@ -249,7 +249,7 @@ def _verify_text(
 
 def _verify_title_geometry(
     title: _PdfText,
-    layout: BarcodeLayout,
+    layout: ResolvedBarcodeLayout,
     errors: list[str],
 ) -> None:
     """Check title font size and baseline without using renderer helpers."""
@@ -269,7 +269,7 @@ def _verify_title_geometry(
 
 def _verify_hri_geometry(
     glyphs: list[_PdfText],
-    layout: BarcodeLayout,
+    layout: ResolvedBarcodeLayout,
     errors: list[str],
 ) -> None:
     """Check all readable-digit positions using an independent EAN formula."""
@@ -278,7 +278,7 @@ def _verify_hri_geometry(
     page_height = _mm_to_points(layout.height_mm)
     font_size = _mm_to_points(layout.hri_font_size_mm)
     expected_y = page_height - _mm_to_points(layout.hri_baseline_mm)
-    start = layout.resolved_left_margin_mm
+    start = layout.symbol_left_mm
     module_width = layout.module_width_mm
     expected_x_mm = [max(start / 2, start - 4 * module_width)]
     expected_x_mm.extend(
@@ -300,14 +300,14 @@ def _verify_hri_geometry(
 
 def _verify_bars(
     rectangles: list[_PdfRectangle],
-    layout: BarcodeLayout,
+    layout: ResolvedBarcodeLayout,
     isbn: str | None,
     errors: list[str],
 ) -> None:
     """Reconstruct the 95 EAN modules from serialized rectangle geometry."""
     reconstructed = ["0"] * SYMBOL_MODULES
     module_width = layout.module_width_mm
-    symbol_start = layout.resolved_left_margin_mm
+    symbol_start = layout.symbol_left_mm
     page_height = _mm_to_points(layout.height_mm)
     guard_count = 0
 
@@ -329,7 +329,7 @@ def _verify_bars(
 
         modules = range(module_start, module_start + module_count)
         is_guard = all(module in GUARD_MODULES for module in modules)
-        expected_height_mm = layout.bar_height
+        expected_height_mm = layout.data_bar_height_mm
         if is_guard:
             expected_height_mm += layout.guard_extension_mm
             guard_count += 1

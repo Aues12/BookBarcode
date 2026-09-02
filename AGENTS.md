@@ -39,6 +39,8 @@ Maintain the documentation as distinct, linked surfaces:
 * `SKILL.yaml` — canonical local machine-readable operation contract;
 * `docs/USAGE.md` and `docs/KULLANIM.md` — complete English and Turkish user
   guides for package, CLI, and tool;
+* `docs/MEASUREMENT-DAG.md` — canonical measurement dependency graph,
+  topological resolution order, formulas, and constraints;
 * `docs/KDY-REFERENCE-NOTES.md` and `docs/KDY-REFERANS-NOTLARI.md` — auditable
   English and Turkish interpretations of KDY dimensions and process-black
   guidance;
@@ -65,8 +67,8 @@ notes and treat the original document as the authoritative external reference.
 bookbarcode/
 ├── isbn.py              ISBN normalization, checksum, and display labels
 ├── ean13.py             parity tables and the 95-module symbol
-├── layout.py            physical measurements and KDY presets
-├── geometry.py          format-independent bars and text positions
+├── layout.py            layout intent, DAG resolution, and KDY presets
+├── geometry.py          complete format-independent drawing geometry
 ├── renderers/           SVG and PDF serialization only
 ├── verification/        independent artifact inspection
 ├── io.py                validated atomic file writes
@@ -83,7 +85,9 @@ pyproject.toml           package and console-script metadata
 Module boundaries are intentional:
 
 * ISBN code must not import renderer or filesystem modules.
-* Geometry must be format-independent and measured in millimetres.
+* `LayoutSpec` records intent; `resolve_layout()` owns measurement formulas and
+  produces a complete immutable `ResolvedBarcodeLayout`.
+* `BarcodeGeometry` must be format-independent and measured in millimetres.
 * Renderers consume shared geometry; they do not recalculate EAN semantics.
 * Verification must inspect serialized artifacts rather than trusting renderers.
 * File mutation belongs in `io.py` or explicit `write_*` methods.
@@ -103,6 +107,9 @@ across releases. Internal helpers may change without compatibility promises.
 
 `Barcode` must remain immutable. Rendering methods return values without side
 effects; file-writing methods make mutation visible in their names.
+`BarcodeLayout` remains the compatibility layout surface. New code may use
+`LayoutSpec`, `resolve_layout()`, and `ResolvedBarcodeLayout` when the
+intent/resolution distinction matters.
 
 ## Domain Invariants
 

@@ -86,7 +86,9 @@ By default, BookBarcode writes both SVG and PDF. Use `--format svg` or
 
 Custom total dimensions, data-bar height, and either shared or independent
 side margins are available. The detailed commands and the full option reference
-are in the [English user guide](docs/USAGE.md).
+are in the [English user guide](docs/USAGE.md). Their mandatory formulas,
+dependencies, and constraints are defined by the
+[measurement dependency DAG](docs/MEASUREMENT-DAG.md).
 
 ## Python API
 
@@ -124,6 +126,23 @@ One module (`X`) is the narrowest EAN-13 bar/space unit. Custom margins are
 accepted only when they preserve quiet zones of at least `11X` on the left and
 `7X` on the right.
 
+For explicit intent/resolution separation, use the typed measurement pipeline:
+
+```python
+from bookbarcode import LayoutSpec, build_barcode_geometry, resolve_layout
+
+spec = LayoutSpec.from_preset("normal", side_margin_mm=3.5)
+resolved = resolve_layout(spec)
+geometry = build_barcode_geometry(
+    "9786253798338",
+    "ISBN 978-625-379-833-8",
+    resolved,
+)
+```
+
+`resolved` contains no optional measurements. `geometry` contains the complete
+title, bar, and human-readable digit positions consumed by both renderers.
+
 ## Agent-tools JSON interface
 
 Agent tools can use BookBarcode as a tool by sending a JSON request envelope to
@@ -153,6 +172,7 @@ canonical local machine-readable manifest.
   custom layouts, printing guidance, common errors, and examples.
 - [Türkçe kullanım kılavuzu](docs/KULLANIM.md)
 - [Agent tool usage procedure](USE_TOOL.md)
+- [Canonical measurement dependency DAG](docs/MEASUREMENT-DAG.md)
 - [KDY size and colour reference notes](docs/KDY-REFERENCE-NOTES.md)
 - [KDY ölçü ve renk referans notları](docs/KDY-REFERANS-NOTLARI.md)
 

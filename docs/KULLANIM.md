@@ -17,7 +17,9 @@ BookBarcode, geçerli bir ISBN-13 numarasından EAN-13 barkodu üretir. Aynı
 
 KDY ölçü ve renk özetinin dayanağı için
 [KDY referans notlarına](KDY-REFERANS-NOTLARI.md) bakın. İngilizce sürüm için
-[English user guide](USAGE.md) belgesine bakın.
+[English user guide](USAGE.md) belgesine bakın. Layout formülleri, çözümleme
+sırası ve constraint'lerin kanonik açıklaması
+[ölçü bağlılık DAG'inde](MEASUREMENT-DAG.md) bulunur.
 
 ## Gereksinimler
 
@@ -256,6 +258,26 @@ Bir modül (`X`), EAN-13 barkodundaki en dar çubuk/boşluk birimidir. Bütün �
 ve boşluk genişlikleri `X`'in tam sayı katlarıdır. Özel margin değerleri yalnız
 sol quiet zone en az `11X`, sağ quiet zone en az `7X` kaldığında kabul edilir;
 daha küçük değerler standart dışı layout olarak reddedilir.
+
+Paket ayrıca niyet ile çözülmüş ölçüleri ayıran tipli bir akış sunar:
+
+```python
+from bookbarcode import LayoutSpec, build_barcode_geometry, resolve_layout
+
+spec = LayoutSpec.from_preset("normal", side_margin_mm=3.5)
+resolved = resolve_layout(spec)
+geometry = build_barcode_geometry(
+    "9786253798338",
+    "ISBN 978-625-379-833-8",
+    resolved,
+)
+```
+
+`LayoutSpec` çağıranın niyetini ve opsiyonel override'ları taşır.
+`ResolvedBarcodeLayout` hiçbir opsiyonel ölçü içermeyen eksiksiz sonucu,
+`BarcodeGeometry` ise iki renderer'ın paylaştığı başlık, çubuk ve HRI
+koordinatlarını taşır. Mevcut `BarcodeLayout` kullanımı desteklenmeye devam eder
+ve aynı resolver üzerinden eager validation yapar.
 
 Mevcut bir PDF'yi amaçlanan ISBN ve layout'a göre doğrulamak için:
 

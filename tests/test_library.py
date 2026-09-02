@@ -6,6 +6,7 @@ import re
 import sys
 import tempfile
 import unittest
+from dataclasses import fields, replace
 from pathlib import Path
 from xml.etree import ElementTree
 
@@ -14,10 +15,15 @@ sys.path.insert(0, str(TOOL_DIR))
 
 from bookbarcode import (  # noqa: E402
     Barcode,
+    BarcodeGeometry,
     BarcodeLayout,
+    LayoutSpec,
+    ResolvedBarcodeLayout,
+    build_barcode_geometry,
     calculate_check_digit,
     encode_ean13,
     normalize_isbn,
+    resolve_layout,
     verify_pdf,
     verify_svg,
 )
@@ -81,6 +87,151 @@ class LayoutTests(unittest.TestCase):
             BarcodeLayout(width_mm=35, left_margin_mm=3, right_margin_mm=3)
         with self.assertRaisesRegex(ValueError, "right quiet zone.*7X"):
             BarcodeLayout(width_mm=35, left_margin_mm=4, right_margin_mm=2)
+
+
+class MeasurementDagTests(unittest.TestCase):
+    """Protect derivation edges, source precedence, and graph constraints."""
+
+    def test_default_horizontal_dependencies_resolve_in_module_units(self) -> None:
+        resolved = resolve_layout(LayoutSpec(width_mm=35, height_mm=19))
+        expected_x = 35 / 113
+        self.assertAlmostEqual(resolved.module_width_mm, expected_x)
+        self.assertAlmostEqual(resolved.left_quiet_zone_mm, 11 * expected_x)
+        self.assertAlmostEqual(resolved.symbol_width_mm, 95 * expected_x)
+        self.assertAlmostEqual(resolved.right_quiet_zone_mm, 7 * expected_x)
+        self.assertAlmostEqual(
+            resolved.left_quiet_zone_mm
+            + resolved.symbol_width_mm
+            + resolved.right_quiet_zone_mm,
+            resolved.width_mm,
+        )
+
+    def test_all_margin_source_cases_resolve_the_same_unit_example(self) -> None:
+        cases = {
+            "standard fallbacks": LayoutSpec(width_mm=113, height_mm=50),
+            "right explicit": LayoutSpec(
+                width_mm=113,
+                height_mm=50,
+                right_margin_mm=7,
+            ),
+            "left explicit": LayoutSpec(
+                width_mm=113,
+                height_mm=50,
+                left_margin_mm=11,
+            ),
+            "both explicit": LayoutSpec(
+                width_mm=113,
+                height_mm=50,
+                left_margin_mm=11,
+                right_margin_mm=7,
+            ),
+        }
+        for name, spec in cases.items():
+            with self.subTest(name=name):
+                resolved = resolve_layout(spec)
+                self.assertEqual(resolved.module_width_mm, 1)
+                self.assertEqual(resolved.left_quiet_zone_mm, 11)
+                self.assertEqual(resolved.right_quiet_zone_mm, 7)
+
+    def test_explicit_margin_sources_override_the_shared_source(self) -> None:
+        resolved = resolve_layout(
+            LayoutSpec(
+                width_mm=38,
+                height_mm=20,
+                side_margin_mm=3.5,
+                left_margin_mm=3.8,
+            )
+        )
+        self.assertEqual(resolved.left_quiet_zone_mm, 3.8)
+        self.assertEqual(resolved.right_quiet_zone_mm, 3.5)
+        self.assertAlmostEqual(resolved.module_width_mm, (38 - 3.8 - 3.5) / 95)
+
+    def test_vertical_dependencies_and_guard_constraint_are_explicit(self) -> None:
+        resolved = resolve_layout(
+            LayoutSpec(
+                width_mm=38,
+                height_mm=20,
+                side_margin_mm=3.8,
+                bar_height_mm=12.5,
+            )
+        )
+        self.assertAlmostEqual(resolved.title_baseline_mm, 20 * 0.14)
+        self.assertAlmostEqual(resolved.bar_top_mm, 20 * 0.19)
+        self.assertEqual(resolved.data_bar_height_mm, 12.5)
+        self.assertAlmostEqual(
+            resolved.data_bar_bottom_mm,
+            resolved.bar_top_mm + resolved.data_bar_height_mm,
+        )
+        self.assertAlmostEqual(
+            resolved.guard_extension_mm,
+            5 * resolved.module_width_mm,
+        )
+        self.assertAlmostEqual(
+            resolved.guard_bar_bottom_mm,
+            resolved.data_bar_bottom_mm + resolved.guard_extension_mm,
+        )
+        self.assertLess(resolved.guard_bar_bottom_mm, resolved.hri_baseline_mm)
+
+        proportional = resolve_layout(LayoutSpec(height_mm=20))
+        self.assertEqual(proportional.data_bar_height_mm, 20 * 0.62)
+
+    def test_exact_quiet_zone_boundaries_are_valid(self) -> None:
+        resolved = resolve_layout(
+            LayoutSpec(
+                width_mm=113,
+                height_mm=50,
+                left_margin_mm=11,
+                right_margin_mm=7,
+            )
+        )
+        self.assertEqual(resolved.left_quiet_zone_mm, 11 * resolved.module_width_mm)
+        self.assertEqual(resolved.right_quiet_zone_mm, 7 * resolved.module_width_mm)
+
+    def test_horizontal_module_scale_participates_in_vertical_fit(self) -> None:
+        with self.assertRaisesRegex(ValueError, "bars do not fit"):
+            resolve_layout(LayoutSpec(width_mm=113, height_mm=19))
+
+    def test_resolution_is_complete_and_idempotent(self) -> None:
+        spec = LayoutSpec()
+        resolved = resolve_layout(spec)
+        self.assertIs(resolve_layout(resolved), resolved)
+        self.assertEqual(spec.resolve(), resolved)
+        self.assertTrue(
+            all(getattr(resolved, item.name) is not None for item in fields(resolved))
+        )
+        self.assertEqual(
+            set(resolved.to_dict()),
+            {item.name for item in fields(resolved)},
+        )
+
+    def test_resolved_snapshot_rejects_broken_dependency_formulas(self) -> None:
+        resolved = resolve_layout(LayoutSpec())
+        with self.assertRaisesRegex(ValueError, "exactly 95 modules"):
+            replace(resolved, symbol_width_mm=resolved.symbol_width_mm + 1)
+        with self.assertRaisesRegex(ValueError, "guard extension must equal 5X"):
+            replace(resolved, guard_extension_mm=resolved.guard_extension_mm + 1)
+        with self.assertRaisesRegex(ValueError, "title baseline.*height dependency"):
+            replace(resolved, title_baseline_mm=resolved.title_baseline_mm + 1)
+
+    def test_barcode_geometry_contains_complete_physical_positions(self) -> None:
+        geometry = build_barcode_geometry(ISBN, DISPLAY, LayoutSpec())
+        self.assertIsInstance(geometry, BarcodeGeometry)
+        self.assertIsInstance(geometry.layout, ResolvedBarcodeLayout)
+        self.assertEqual(geometry.title.x_mm, geometry.layout.width_mm / 2)
+        self.assertEqual(
+            geometry.title.baseline_mm,
+            geometry.layout.title_baseline_mm,
+        )
+        self.assertEqual(len(geometry.hri_glyphs), 13)
+        self.assertEqual(geometry.bars[0].x_mm, geometry.layout.symbol_left_mm)
+        self.assertEqual(geometry.bars[0].y_mm, geometry.layout.bar_top_mm)
+        self.assertTrue(
+            all(
+                glyph.baseline_mm == geometry.layout.hri_baseline_mm
+                and glyph.font_size_mm == geometry.layout.hri_font_size_mm
+                for glyph in geometry.hri_glyphs
+            )
+        )
 
 
 class BarcodeRenderingTests(unittest.TestCase):
