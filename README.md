@@ -1,5 +1,7 @@
 # BookBarcode
 
+[![CI](https://github.com/Aues12/BookBarcode/actions/workflows/CI.yml/badge.svg)](https://github.com/Aues12/BookBarcode/actions/workflows/CI.yml)
+
 BookBarcode generates deterministic ISBN-13/EAN-13 barcodes for books.
 It creates editable SVG files and print-ready PDF files, and checks each
 artifact before writing it.
@@ -168,6 +170,7 @@ canonical local machine-readable manifest.
 
 ## Documentation
 
+- [Changelog](CHANGELOG.md) — release history and notable changes by version.
 - [English user guide](docs/USAGE.md) — installation, complete CLI reference,
   custom layouts, printing guidance, common errors, and examples.
 - [Türkçe kullanım kılavuzu](docs/KULLANIM.md)

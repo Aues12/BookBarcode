@@ -174,7 +174,6 @@ Required local checks:
 
 ```bash
 python3 -m unittest discover -s tests -v
-python3 test_all.py
 python3 -m py_compile bookbarcode/*.py
 git diff --check
 ```
