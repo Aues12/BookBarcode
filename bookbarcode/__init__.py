@@ -21,7 +21,7 @@ from .layout import (
 from .renderers import render_pdf, render_svg
 from .verification import VerificationResult, verify_pdf, verify_svg
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 __all__ = [
     "Barcode",

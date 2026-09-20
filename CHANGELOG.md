@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-09-20
+
 ### Added
 
 - Added a project changelog reconstructed from declared package versions,
@@ -19,7 +21,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ### Changed
 
 - Reworked README onboarding around explicit CLI, Python API, and agent entry
-  points, with complete GitHub and editable-development installation paths.
+  points, with complete PyPI and editable-development installation paths.
+- Replaced project-specific ISBN examples and test fixtures with published
+  reference examples, and made PyPI the primary installation path.
 
 ## [0.4.0] - 2026-09-02
 
@@ -92,7 +96,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Added basic physical barcode sizing, guard bars, quiet zones, visible ISBN
   text, and CMYK intent metadata.
 
-[Unreleased]: https://github.com/Aues12/BookBarcode/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/Aues12/BookBarcode/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/Aues12/BookBarcode/releases/tag/v0.4.1
 [0.4.0]: https://github.com/Aues12/BookBarcode/releases/tag/v0.4.0
 [0.3.0]: https://github.com/Aues12/BookBarcode/commit/4c047fd04b94878b9d242302b8d7676389ccc0a5
 [0.1.0]: https://github.com/Aues12/BookBarcode/commit/2e80d18b6c895f2cc99d724e0a4d97e256daccfc

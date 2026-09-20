@@ -9,7 +9,7 @@ import unittest
 from pathlib import Path
 
 TOOL_DIR = Path(__file__).resolve().parents[1]
-ISBN = "9786253798338"
+ISBN = "9789295055124"
 
 
 class BookBarcodeCliTests(unittest.TestCase):

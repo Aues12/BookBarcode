@@ -14,8 +14,8 @@ from bookbarcode import Barcode, BarcodeLayout  # noqa: E402
 
 layout = BarcodeLayout.from_preset("normal", side_margin_mm=3.5)
 barcode = Barcode(
-    "9786253798338",
-    display_text="ISBN 978-625-379-833-8",
+    "9789295055124",
+    display_text="ISBN 978-92-95055-12-4",
     layout=layout,
 )
 

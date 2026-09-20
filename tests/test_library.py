@@ -28,11 +28,11 @@ from bookbarcode import (  # noqa: E402
     verify_svg,
 )
 
-ISBN = "9786253798338"
-DISPLAY = "ISBN 978-625-379-833-8"
+ISBN = "9789295055124"
+DISPLAY = "ISBN 978-92-95055-12-4"
 KNOWN_PATTERN = (
-    "101011101100010010000101001001101110010111101010101000100111010010010001"
-    "00001010000101001000101"
+    "101011101100010010010111001001100101110110001010101110010100111010011101"
+    "10011011011001011100101"
 )
 
 
@@ -41,15 +41,15 @@ class IsbnTests(unittest.TestCase):
 
     def test_normalization_and_known_check_digit(self) -> None:
         self.assertEqual(normalize_isbn(f"ISBN-13: {DISPLAY[5:]}"), ISBN)
-        self.assertEqual(calculate_check_digit(ISBN[:12]), "8")
+        self.assertEqual(calculate_check_digit(ISBN[:12]), "4")
 
     def test_ean_encoding_matches_known_95_module_vector(self) -> None:
         self.assertEqual(encode_ean13(ISBN), KNOWN_PATTERN)
         self.assertEqual(len(KNOWN_PATTERN), 95)
 
     def test_invalid_checksum_is_rejected_not_corrected(self) -> None:
-        with self.assertRaisesRegex(ValueError, "expected 8, received 7"):
-            Barcode("9786253798337")
+        with self.assertRaisesRegex(ValueError, "expected 4, received 3"):
+            Barcode("9789295055123")
 
 
 class LayoutTests(unittest.TestCase):
@@ -238,7 +238,7 @@ class BarcodeRenderingTests(unittest.TestCase):
     """Verify shared geometry, renderers, safe writes, and verification."""
 
     def test_facade_generates_svg_and_process_black_pdf(self) -> None:
-        barcode = Barcode(ISBN)
+        barcode = Barcode(ISBN, DISPLAY)
         svg = barcode.to_svg()
         pdf = barcode.to_pdf()
         root = ElementTree.fromstring(svg)
@@ -347,7 +347,7 @@ class BarcodeRenderingTests(unittest.TestCase):
     def test_pdf_verifier_reports_tampered_human_readable_digits(self) -> None:
         """Reject disagreement among expected ISBN, title, glyphs, and bars."""
         original = Barcode(ISBN).to_pdf()
-        prefix, separator, suffix = original.rpartition(b"(8) Tj ET")
+        prefix, separator, suffix = original.rpartition(b"(4) Tj ET")
         self.assertTrue(separator)
         changed = prefix + b"(7) Tj ET" + suffix
         with tempfile.TemporaryDirectory() as directory:
@@ -369,7 +369,7 @@ class BarcodeRenderingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "barcode.pdf"
             path.write_bytes(Barcode(ISBN).to_pdf())
-            report = verify_pdf(path, expected_isbn="9786059681131")
+            report = verify_pdf(path, expected_isbn="9780306406157")
             self.assertFalse(report.valid)
             self.assertIn(
                 "PDF human-readable digits do not match the expected ISBN",

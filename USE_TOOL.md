@@ -26,7 +26,7 @@ BookBarcode source checkout, normally from the repository root:
 ```bash
 printf '%s' '{
   "operation": "generate_svg",
-  "params": {"isbn": "9786253798338"}
+  "params": {"isbn": "9789295055124"}
 }' | python3 isbn_barcode.py
 ```
 
@@ -66,7 +66,7 @@ The adapter reads one UTF-8 JSON object from stdin:
 {
   "operation": "write_barcode",
   "params": {
-    "isbn": "9786253798338",
+    "isbn": "9789295055124",
     "output_base": "/tmp/book-barcode",
     "formats": ["svg", "pdf"]
   }
@@ -326,7 +326,7 @@ Write the default SVG/PDF pair:
 printf '%s' '{
   "operation": "write_barcode",
   "params": {
-    "isbn": "9786253798338",
+    "isbn": "9789295055124",
     "output_base": "/tmp/book-barcode"
   }
 }' | python3 isbn_barcode.py
@@ -338,7 +338,7 @@ Write one minimum-size PDF:
 printf '%s' '{
   "operation": "write_pdf",
   "params": {
-    "isbn": "9786253798338",
+    "isbn": "9789295055124",
     "output_path": "/tmp/book-barcode.pdf",
     "layout": {"preset": "minimum"}
   }
@@ -352,7 +352,7 @@ printf '%s' '{
   "operation": "verify_svg",
   "params": {
     "path": "/tmp/book-barcode.svg",
-    "isbn": "9786253798338",
+    "isbn": "9789295055124",
     "layout": {"preset": "normal"}
   }
 }' | python3 isbn_barcode.py
@@ -365,7 +365,7 @@ printf '%s' '{
   "operation": "verify_pdf",
   "params": {
     "path": "/tmp/book-barcode.pdf",
-    "isbn": "9786253798338",
+    "isbn": "9789295055124",
     "layout": {"preset": "normal"}
   }
 }' | python3 isbn_barcode.py

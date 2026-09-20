@@ -34,16 +34,18 @@ python3 --version
 
 ## Installation
 
-Change to the BookBarcode repository root:
+Install the current release from PyPI:
 
 ```bash
-cd /path/to/BookBarcode
+python3 -m pip install "bookbarcode==0.4.1"
 ```
 
-For development, create and activate a virtual environment, then install the
-package in editable mode:
+For development, clone the repository, create and activate a virtual
+environment, then install the package in editable mode:
 
 ```bash
+git clone https://github.com/Aues12/BookBarcode.git
+cd BookBarcode
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install -e .
@@ -72,7 +74,7 @@ python3 -m bookbarcode.cli --help
 Pass the ISBN as the positional argument:
 
 ```bash
-bookbarcode 9786253798338
+bookbarcode 9789295055124
 ```
 
 By default, BookBarcode creates these verified files in the current directory:
@@ -91,15 +93,15 @@ Without `--display`, the human-readable heading uses a legible `3-3-3-3-1`
 fallback:
 
 ```text
-ISBN 978-625-379-833-8
+ISBN 978-92-95055-12-4
 ```
 
 This does not determine official ISBN registrant ranges. If the assigned
 hyphenation is different, pass it explicitly:
 
 ```bash
-bookbarcode 9786059681131 \
-  --display "ISBN 978-605-9681-13-1"
+bookbarcode 9780306406157 \
+  --display "ISBN 978-0-306-40615-7"
 ```
 
 The digits in the heading must match the encoded ISBN exactly; only hyphen
@@ -115,13 +117,13 @@ placement may differ.
 The normal size is the default:
 
 ```bash
-bookbarcode 9786253798338 --preset normal
+bookbarcode 9789295055124 --preset normal
 ```
 
 Use the minimum size only where necessary:
 
 ```bash
-bookbarcode 9786253798338 --preset minimum
+bookbarcode 9789295055124 --preset minimum
 ```
 
 Reducing a barcode below the minimum size is not recommended for dependable
@@ -132,7 +134,7 @@ printing and scanning.
 All dimensions are in millimetres:
 
 ```bash
-bookbarcode 9786253798338 \
+bookbarcode 9789295055124 \
   --width-mm 38 \
   --height-mm 20
 ```
@@ -140,7 +142,7 @@ bookbarcode 9786253798338 \
 Set the data-bar height independently:
 
 ```bash
-bookbarcode 9786253798338 \
+bookbarcode 9789295055124 \
   --height-mm 20 \
   --bar-height-mm 12.5
 ```
@@ -153,13 +155,13 @@ bars would intrude into the human-readable digit area.
 Set the same margin on both sides:
 
 ```bash
-bookbarcode 9786253798338 --side-margin-mm 3
+bookbarcode 9789295055124 --side-margin-mm 3
 ```
 
 Or set each side separately:
 
 ```bash
-bookbarcode 9786253798338 \
+bookbarcode 9789295055124 \
   --left-margin-mm 3.5 \
   --right-margin-mm 2.5
 ```
@@ -173,14 +175,14 @@ BookBarcode computes the EAN-13 defaults: `11X` left and `7X` right.
 The default, `--format both`, writes SVG and PDF. To write only one format:
 
 ```bash
-bookbarcode 9786253798338 --format pdf
-bookbarcode 9786253798338 --format svg
+bookbarcode 9789295055124 --format pdf
+bookbarcode 9789295055124 --format svg
 ```
 
 Set an output base path with `--output` or `-o`:
 
 ```bash
-bookbarcode 9786253798338 \
+bookbarcode 9789295055124 \
   --output output/book-title/barcode
 ```
 
@@ -194,7 +196,7 @@ output/book-title/barcode.pdf
 To replace verified existing files, opt in explicitly:
 
 ```bash
-bookbarcode 9786253798338 --output output/barcode --overwrite
+bookbarcode 9789295055124 --output output/barcode --overwrite
 ```
 
 Each new artifact is written to a temporary sibling, verified, and then
@@ -225,7 +227,7 @@ Generate content without writing files:
 ```python
 from bookbarcode import Barcode
 
-barcode = Barcode("9786253798338")
+barcode = Barcode("9789295055124")
 svg_text = barcode.to_svg()
 pdf_bytes = barcode.to_pdf()
 ```
@@ -241,8 +243,8 @@ layout = BarcodeLayout.from_preset(
     bar_height_mm=12.5,
 )
 barcode = Barcode(
-    "9786253798338",
-    display_text="ISBN 978-625-379-833-8",
+    "9789295055124",
+    display_text="ISBN 978-92-95055-12-4",
     layout=layout,
 )
 barcode.write_svg("book-barcode.svg")
@@ -262,8 +264,8 @@ from bookbarcode import LayoutSpec, build_barcode_geometry, resolve_layout
 spec = LayoutSpec.from_preset("normal", side_margin_mm=3.5)
 resolved = resolve_layout(spec)
 geometry = build_barcode_geometry(
-    "9786253798338",
-    "ISBN 978-625-379-833-8",
+    "9789295055124",
+    "ISBN 978-92-95055-12-4",
     resolved,
 )
 ```
@@ -282,7 +284,7 @@ from bookbarcode import BarcodeLayout, verify_pdf
 report = verify_pdf(
     "book-barcode.pdf",
     BarcodeLayout.from_preset("normal"),
-    expected_isbn="9786253798338",
+    expected_isbn="9789295055124",
 )
 if not report.valid:
     raise RuntimeError("; ".join(report.errors))
@@ -302,7 +304,7 @@ From the repository root, generate SVG and PDF:
 printf '%s' '{
   "operation": "write_barcode",
   "params": {
-    "isbn": "9786253798338",
+    "isbn": "9789295055124",
     "output_base": "/tmp/book-barcode",
     "layout": {"preset": "normal"}
   }
@@ -327,7 +329,7 @@ manifest is [SKILL.yaml](../SKILL.yaml).
 Print-ready normal-size PDF:
 
 ```bash
-bookbarcode 9786253798338 \
+bookbarcode 9789295055124 \
   --format pdf \
   --output output/normal-barcode
 ```
@@ -335,7 +337,7 @@ bookbarcode 9786253798338 \
 Minimum-size SVG and PDF:
 
 ```bash
-bookbarcode 9786253798338 \
+bookbarcode 9789295055124 \
   --preset minimum \
   --format both \
   --output output/minimum-barcode
@@ -344,8 +346,8 @@ bookbarcode 9786253798338 \
 Custom size, independent margins, and assigned hyphenation:
 
 ```bash
-bookbarcode 9786059681131 \
-  --display "ISBN 978-605-9681-13-1" \
+bookbarcode 9780306406157 \
+  --display "ISBN 978-0-306-40615-7" \
   --width-mm 39 \
   --height-mm 20 \
   --bar-height-mm 12 \

@@ -16,8 +16,8 @@ from tool import write_barcode  # noqa: E402
 
 with tempfile.TemporaryDirectory() as directory:
     result = write_barcode(
-        "9786253798338",
+        "9789295055124",
         Path(directory) / "book-barcode",
-        display_text="ISBN 978-625-379-833-8",
+        display_text="ISBN 978-92-95055-12-4",
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))

@@ -28,11 +28,10 @@ The package has no runtime third-party dependencies and supports Python 3.9+.
 
 ## Quick start
 
-Install the current release directly from GitHub:
+Install the current release from PyPI:
 
 ```bash
-python3 -m pip install \
-  "git+https://github.com/Aues12/BookBarcode.git@v0.4.0"
+python3 -m pip install "bookbarcode==0.4.1"
 ```
 
 Generate both formats with a valid ISBN-13:
@@ -73,7 +72,7 @@ python3 -m bookbarcode.cli 9789295055124 \
 Create a print-ready PDF at a chosen path:
 
 ```bash
-bookbarcode 9786253798338 \
+bookbarcode 9789295055124 \
   --format pdf \
   --output output/book-barcode
 ```
@@ -81,7 +80,7 @@ bookbarcode 9786253798338 \
 Use the smallest bundled layout when space is constrained:
 
 ```bash
-bookbarcode 9786253798338 \
+bookbarcode 9789295055124 \
   --preset minimum \
   --output output/small-book-barcode
 ```
@@ -89,8 +88,8 @@ bookbarcode 9786253798338 \
 Use assigned ISBN hyphenation in the visible heading:
 
 ```bash
-bookbarcode 9786059681131 \
-  --display "ISBN 978-605-9681-13-1" \
+bookbarcode 9780306406157 \
+  --display "ISBN 978-0-306-40615-7" \
   --output output/book-barcode
 ```
 
@@ -123,7 +122,7 @@ Generate content without writing files:
 ```python
 from bookbarcode import Barcode
 
-barcode = Barcode("9786253798338")
+barcode = Barcode("9789295055124")
 svg_text = barcode.to_svg()
 pdf_bytes = barcode.to_pdf()
 ```
@@ -140,8 +139,8 @@ layout = BarcodeLayout(
     bar_height_mm=12.5,
 )
 barcode = Barcode(
-    "9786253798338",
-    display_text="ISBN 978-625-379-833-8",
+    "9789295055124",
+    display_text="ISBN 978-92-95055-12-4",
     layout=layout,
 )
 barcode.write_svg("book-barcode.svg")
@@ -160,8 +159,8 @@ from bookbarcode import LayoutSpec, build_barcode_geometry, resolve_layout
 spec = LayoutSpec.from_preset("normal", side_margin_mm=3.5)
 resolved = resolve_layout(spec)
 geometry = build_barcode_geometry(
-    "9786253798338",
-    "ISBN 978-625-379-833-8",
+    "9789295055124",
+    "ISBN 978-92-95055-12-4",
     resolved,
 )
 ```
@@ -180,7 +179,7 @@ rules independently.
 printf '%s' '{
   "operation": "write_barcode",
   "params": {
-    "isbn": "9786253798338",
+    "isbn": "9789295055124",
     "output_base": "/tmp/book-barcode",
     "layout": {"preset": "normal"}
   }

@@ -15,7 +15,7 @@ sys.path.insert(0, str(TOOL_DIR))
 
 from tool import build_layout, generate_svg, run, write_barcode  # noqa: E402
 
-ISBN = "9786253798338"
+ISBN = "9789295055124"
 
 
 class IsbnBarcodeAdapterTests(unittest.TestCase):
@@ -194,7 +194,7 @@ class IsbnBarcodeAdapterTests(unittest.TestCase):
                     "invalid ISBN",
                     {
                         "operation": "generate_svg",
-                        "params": {"isbn": "9786253798337"},
+                        "params": {"isbn": "9789295055123"},
                     },
                     "ValueError",
                 ),

@@ -34,15 +34,18 @@ python3 --version
 
 ## Kurulum
 
-BookBarcode repo köküne geçin:
+Güncel sürümü PyPI'dan kurun:
 
 ```bash
-cd /path/to/BookBarcode
+python3 -m pip install "bookbarcode==0.4.1"
 ```
 
-Geliştirme kurulumu:
+Geliştirme için repoyu klonlayın, sanal ortam oluşturup etkinleştirin ve paketi
+editable modda kurun:
 
 ```bash
+git clone https://github.com/Aues12/BookBarcode.git
+cd BookBarcode
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install -e .
@@ -71,7 +74,7 @@ python3 -m bookbarcode.cli --help
 ISBN komuta pozisyonel argüman olarak verilir:
 
 ```bash
-bookbarcode 9786253798338
+bookbarcode 9789295055124
 ```
 
 Varsayılan olarak çalışma klasöründe şu dosyalar oluşturulur:
@@ -90,15 +93,15 @@ dosya, açıkça `--overwrite` verilmedikçe değiştirilmez.
 gösterilir:
 
 ```text
-ISBN 978-625-379-833-8
+ISBN 978-92-95055-12-4
 ```
 
 Bu gruplama resmî ISBN registrant aralıklarını çıkarmaz. Kuruma atanmış doğru
 tireleme farklıysa açıkça verin:
 
 ```bash
-bookbarcode 9786059681131 \
-  --display "ISBN 978-605-9681-13-1"
+bookbarcode 9780306406157 \
+  --display "ISBN 978-0-306-40615-7"
 ```
 
 Başlıktaki rakamlar kodlanan ISBN ile aynı olmak zorundadır. Yalnız tirelerin
@@ -114,13 +117,13 @@ konumu değişebilir.
 Normal ölçü varsayılandır:
 
 ```bash
-bookbarcode 9786253798338 --preset normal
+bookbarcode 9789295055124 --preset normal
 ```
 
 Minimum ölçü:
 
 ```bash
-bookbarcode 9786253798338 --preset minimum
+bookbarcode 9789295055124 --preset minimum
 ```
 
 Minimum ölçünün altına inmek baskı ve okutma güvenilirliği açısından
@@ -131,7 +134,7 @@ Minimum ölçünün altına inmek baskı ve okutma güvenilirliği açısından
 Toplam ölçüler milimetre cinsinden değiştirilebilir:
 
 ```bash
-bookbarcode 9786253798338 \
+bookbarcode 9789295055124 \
   --width-mm 38 \
   --height-mm 20
 ```
@@ -139,7 +142,7 @@ bookbarcode 9786253798338 \
 Veri çubuklarının yüksekliği ayrıca belirlenebilir:
 
 ```bash
-bookbarcode 9786253798338 \
+bookbarcode 9789295055124 \
   --height-mm 20 \
   --bar-height-mm 12.5
 ```
@@ -152,13 +155,13 @@ tarafından okunabilir rakamların alanına taşıyorsa layout reddedilir.
 İki yan marjini birlikte ayarlamak için:
 
 ```bash
-bookbarcode 9786253798338 --side-margin-mm 3
+bookbarcode 9789295055124 --side-margin-mm 3
 ```
 
 Sol ve sağ marjin ayrı verilebilir:
 
 ```bash
-bookbarcode 9786253798338 \
+bookbarcode 9789295055124 \
   --left-margin-mm 3.5 \
   --right-margin-mm 2.5
 ```
@@ -172,19 +175,19 @@ sol `11X` ve sağ `7X` sessiz alan otomatik hesaplanır.
 Varsayılan `--format both` hem SVG hem PDF üretir. Yalnız PDF:
 
 ```bash
-bookbarcode 9786253798338 --format pdf
+bookbarcode 9789295055124 --format pdf
 ```
 
 Yalnız SVG:
 
 ```bash
-bookbarcode 9786253798338 --format svg
+bookbarcode 9789295055124 --format svg
 ```
 
 Çıktı kökü `--output` veya `-o` ile belirlenir:
 
 ```bash
-bookbarcode 9786253798338 \
+bookbarcode 9789295055124 \
   --output output/kitap-adi/barkod
 ```
 
@@ -199,7 +202,7 @@ output/kitap-adi/barkod.pdf
 Mevcut dosyaları doğrulanmış yeni çıktıyla değiştirmek için:
 
 ```bash
-bookbarcode 9786253798338 --output output/barkod --overwrite
+bookbarcode 9789295055124 --output output/barkod --overwrite
 ```
 
 Yeni içerik önce geçici bir komşu dosyaya yazılır ve doğrulanır; hedef ancak
@@ -230,7 +233,7 @@ Dosya yazmadan içerik üretmek için:
 ```python
 from bookbarcode import Barcode
 
-barcode = Barcode("9786253798338")
+barcode = Barcode("9789295055124")
 svg_text = barcode.to_svg()
 pdf_bytes = barcode.to_pdf()
 ```
@@ -246,8 +249,8 @@ layout = BarcodeLayout.from_preset(
     bar_height_mm=12.5,
 )
 barcode = Barcode(
-    "9786253798338",
-    display_text="ISBN 978-625-379-833-8",
+    "9789295055124",
+    display_text="ISBN 978-92-95055-12-4",
     layout=layout,
 )
 barcode.write_svg("book-barcode.svg")
@@ -267,8 +270,8 @@ from bookbarcode import LayoutSpec, build_barcode_geometry, resolve_layout
 spec = LayoutSpec.from_preset("normal", side_margin_mm=3.5)
 resolved = resolve_layout(spec)
 geometry = build_barcode_geometry(
-    "9786253798338",
-    "ISBN 978-625-379-833-8",
+    "9789295055124",
+    "ISBN 978-92-95055-12-4",
     resolved,
 )
 ```
@@ -287,7 +290,7 @@ from bookbarcode import BarcodeLayout, verify_pdf
 report = verify_pdf(
     "book-barcode.pdf",
     BarcodeLayout.from_preset("normal"),
-    expected_isbn="9786253798338",
+    expected_isbn="9789295055124",
 )
 if not report.valid:
     raise RuntimeError("; ".join(report.errors))
@@ -307,7 +310,7 @@ BookBarcode repo kökünden SVG ve PDF üretmek için:
 printf '%s' '{
   "operation": "write_barcode",
   "params": {
-    "isbn": "9786253798338",
+    "isbn": "9789295055124",
     "output_base": "/tmp/book-barcode",
     "layout": {"preset": "normal"}
   }
@@ -332,7 +335,7 @@ izlemelidir. Yerel ve makinece okunabilir kanonik operasyon manifesti
 Normal ölçüde baskılık PDF:
 
 ```bash
-bookbarcode 9786253798338 \
+bookbarcode 9789295055124 \
   --format pdf \
   --output output/normal-barkod
 ```
@@ -340,7 +343,7 @@ bookbarcode 9786253798338 \
 Minimum ölçüde SVG ve PDF:
 
 ```bash
-bookbarcode 9786253798338 \
+bookbarcode 9789295055124 \
   --preset minimum \
   --format both \
   --output output/minimum-barkod
@@ -349,8 +352,8 @@ bookbarcode 9786253798338 \
 Özel ölçü, ayrı marjin ve atanmış tireleme:
 
 ```bash
-bookbarcode 9786059681131 \
-  --display "ISBN 978-605-9681-13-1" \
+bookbarcode 9780306406157 \
+  --display "ISBN 978-0-306-40615-7" \
   --width-mm 39 \
   --height-mm 20 \
   --bar-height-mm 12 \
